@@ -1,7 +1,3 @@
-use std::f64::NEG_INFINITY;
-
-use crate::INFINITY;
-
 #[derive(Default, Clone, Copy)]
 pub struct Interval {
     pub min: f64,
@@ -33,15 +29,15 @@ impl Interval {
 
     pub const fn empty() -> Self {
         Self {
-            min: INFINITY,
-            max: NEG_INFINITY,
+            min: f64::INFINITY,
+            max: f64::NEG_INFINITY,
         }
     }
 
     pub const fn universe() -> Self {
         Self {
-            min: NEG_INFINITY,
-            max: INFINITY,
+            min: f64::NEG_INFINITY,
+            max: f64::INFINITY,
         }
     }
 }
