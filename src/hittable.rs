@@ -1,4 +1,4 @@
-use std::rc::Rc;
+use std::sync::Arc;
 
 use crate::{lambertian::Lambertian, material::Material, ray::Ray, Interval};
 use linalg::{vector::Vector, Point};
@@ -7,7 +7,7 @@ use linalg::{vector::Vector, Point};
 pub struct HitRecord {
     pub p: Point<f64, 3>,
     pub normal: Vector<f64, 3>,
-    pub material: Rc<dyn Material>,
+    pub material: Arc<dyn Material>,
     pub distance: f64,
     pub front_face: bool,
 }
@@ -17,7 +17,7 @@ impl Default for HitRecord {
         HitRecord {
             p: Point::default(),
             normal: Vector::default(),
-            material: Rc::new(Lambertian::default()),
+            material: Arc::new(Lambertian::default()),
             distance: 0.0,
             front_face: true,
         }
@@ -37,6 +37,6 @@ impl HitRecord {
     }
 }
 
-pub trait Hittable {
+pub trait Hittable: Send + Sync {
     fn hit(&self, ray: &Ray, ray_t: Interval, record: &mut HitRecord) -> bool;
 }

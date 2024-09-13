@@ -4,7 +4,26 @@ use raytracer::{
     camera::Camera, colour::Colour, dielectric::Dielectric, hittable_list::HittableList,
     lambertian::Lambertian, metals::Metal, sphere::Sphere, Vector,
 };
-use std::{env, fs::OpenOptions, rc::Rc};
+use std::{env, fs::OpenOptions, sync::Arc};
+
+fn setup_camera() -> Camera {
+    let mut camera = Camera::default();
+
+    camera.aspect_ratio = 16.0 / 9.0;
+    camera.width = 1920;
+    camera.samples_per_pixel = 50;
+    camera.max_depth = 50;
+
+    camera.vfov = 20.;
+    camera.lookfrom = Point::new([13., 2., 3.]);
+    camera.lookat = Point::new([0., 0., 0.]);
+    camera.vup = Vector::new([0., 1., 0.]);
+
+    camera.defocus_angle = 0.6;
+    camera.focus_dist = 10.;
+
+    camera
+}
 
 fn main() {
     let args: Vec<String> = env::args().collect();
@@ -18,8 +37,8 @@ fn main() {
 
     let mut world = HittableList::default();
 
-    let material_ground = Rc::new(Lambertian::new(Colour::new([0.5, 0.5, 0.5])));
-    world.add(Rc::new(Sphere::new(
+    let material_ground = Arc::new(Lambertian::new(Colour::new([0.5, 0.5, 0.5])));
+    world.add(Arc::new(Sphere::new(
         Point::new([0., -1000., 0.]),
         1000.,
         material_ground,
@@ -38,58 +57,45 @@ fn main() {
                 if choose_mat < 0.8 {
                     // diffuse
                     let albedo = Colour::random().hadamard(Colour::random());
-                    let mat = Rc::new(Lambertian::new(albedo));
-                    world.add(Rc::new(Sphere::new(centre, 0.2, mat)));
+                    let mat = Arc::new(Lambertian::new(albedo));
+                    world.add(Arc::new(Sphere::new(centre, 0.2, mat)));
                 } else if choose_mat < 0.95 {
                     // metal
                     let albedo = Colour::random_range(0.5, 1.);
                     let fuzz = random::<f64>() * 0.5;
-                    let mat = Rc::new(Metal::new(albedo, fuzz));
-                    world.add(Rc::new(Sphere::new(centre, 0.2, mat)));
+                    let mat = Arc::new(Metal::new(albedo, fuzz));
+                    world.add(Arc::new(Sphere::new(centre, 0.2, mat)));
                 } else {
                     // glass
-                    let mat = Rc::new(Dielectric::new(1.5));
-                    world.add(Rc::new(Sphere::new(centre, 0.2, mat)));
+                    let mat = Arc::new(Dielectric::new(1.5));
+                    world.add(Arc::new(Sphere::new(centre, 0.2, mat)));
                 }
             }
         }
     }
 
-    let material1 = Rc::new(Dielectric::new(1.5));
-    world.add(Rc::new(Sphere::new(
+    let material1 = Arc::new(Dielectric::new(1.5));
+    world.add(Arc::new(Sphere::new(
         Point::new([0., 1., 0.]),
         1.0,
         material1,
     )));
 
-    let material2 = Rc::new(Lambertian::new(Colour::new([0.4, 0.2, 0.1])));
-    world.add(Rc::new(Sphere::new(
+    let material2 = Arc::new(Lambertian::new(Colour::new([0.4, 0.2, 0.1])));
+    world.add(Arc::new(Sphere::new(
         Point::new([-4., 1., 0.]),
         1.0,
         material2,
     )));
 
-    let material3 = Rc::new(Metal::new(Colour::new([0.7, 0.6, 0.5]), 0.));
-    world.add(Rc::new(Sphere::new(
+    let material3 = Arc::new(Metal::new(Colour::new([0.7, 0.6, 0.5]), 0.));
+    world.add(Arc::new(Sphere::new(
         Point::new([4., 1., 0.]),
         1.,
         material3,
     )));
 
-    let mut camera = Camera::default();
-
-    camera.aspect_ratio = 16.0 / 9.0;
-    camera.width = 1920;
-    camera.samples_per_pixel = 500;
-    camera.max_depth = 50;
-
-    camera.vfov = 20.;
-    camera.lookfrom = Point::new([13., 2., 3.]);
-    camera.lookat = Point::new([0., 0., 0.]);
-    camera.vup = Vector::new([0., 1., 0.]);
-
-    camera.defocus_angle = 0.6;
-    camera.focus_dist = 10.;
+    let mut camera = setup_camera();
 
     camera.render(file, world);
 }

@@ -1,4 +1,4 @@
-use std::rc::Rc;
+use std::{rc::Rc, sync::Arc};
 
 use crate::{
     hittable::{self, Hittable},
@@ -12,11 +12,14 @@ use linalg::Point;
 pub struct Sphere {
     centre: Point<f64, 3>,
     radius: f64,
-    material: Rc<dyn Material>,
+    material: Arc<dyn Material>,
 }
 
+unsafe impl Send for Sphere {}
+unsafe impl Sync for Sphere {}
+
 impl Sphere {
-    pub fn new(centre: Point<f64, 3>, radius: f64, material: Rc<dyn Material>) -> Self {
+    pub fn new(centre: Point<f64, 3>, radius: f64, material: Arc<dyn Material>) -> Self {
         Self {
             centre,
             radius,
@@ -30,7 +33,7 @@ impl Default for Sphere {
         Sphere {
             centre: Point::default(),
             radius: 0.0,
-            material: Rc::new(Lambertian::default()),
+            material: Arc::new(Lambertian::default()),
         }
     }
 }

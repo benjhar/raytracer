@@ -1,5 +1,6 @@
 use linalg::Point;
 use rand::random;
+use rayon::prelude::*;
 use std::io;
 use std::io::Write;
 use tqdm::Iter;
@@ -12,7 +13,7 @@ use crate::{
     Interval, Vector,
 };
 
-#[derive(Default)]
+#[derive(Default, Clone, Copy)]
 pub struct Camera {
     pub aspect_ratio: f64,
     pub width: u32,
@@ -37,7 +38,7 @@ pub struct Camera {
 }
 
 impl Camera {
-    pub fn render(&mut self, mut file: impl Write, world: impl Hittable) {
+    pub fn render(&mut self, mut file: impl Write, world: impl Hittable + Clone + 'static) {
         self.initialise();
 
         let mut data = String::new();
@@ -47,18 +48,23 @@ impl Camera {
 
         let _ = file.write_fmt(format_args!("P3\n{} {}\n255\n", self.width, self.height));
 
-        for j in (0..self.height).tqdm() {
-            // let _ = stderr.write_fmt(format_args!("\rScanlines remaining: {} ", self.height - j));
-            // let _ = stderr.flush();
+        let height = self.height;
+        let width = self.width;
+        let samples_per_pixel = self.samples_per_pixel;
+        let max_depth = self.max_depth;
 
-            for i in 0..self.width {
-                let mut pixel_colour = Colour::new([0., 0., 0.]);
-
-                for _ in 0..self.samples_per_pixel {
-                    let ray = self.get_ray(i, j);
-                    pixel_colour = pixel_colour + Self::ray_colour(ray, self.max_depth, &world);
-                }
-                write_colour(&mut data, pixel_colour, self.samples_per_pixel);
+        for j in (0..height).tqdm() {
+            for i in 0..width {
+                let pixel_colour: Colour = (0..samples_per_pixel)
+                    .into_par_iter()
+                    .map(|_| {
+                        let ray = self.get_ray(i, j);
+                        Self::ray_colour(ray, max_depth, &world)
+                    })
+                    .collect::<Vec<Colour>>()
+                    .iter()
+                    .fold(Colour::zero(), |acc, c| acc + *c);
+                write_colour(&mut data, pixel_colour, samples_per_pixel);
             }
         }
 

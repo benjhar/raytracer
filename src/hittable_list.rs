@@ -1,4 +1,4 @@
-use std::rc::Rc;
+use std::sync::Arc;
 
 use crate::{
     hittable::{HitRecord, Hittable},
@@ -6,9 +6,9 @@ use crate::{
     Interval,
 };
 
-#[derive(Default)]
+#[derive(Default, Clone)]
 pub struct HittableList<O: Clone + Default + Hittable> {
-    pub objects: Vec<Rc<O>>,
+    pub objects: Vec<Arc<O>>,
 }
 
 impl<O: Clone + Default + Hittable> HittableList<O> {
@@ -18,7 +18,7 @@ impl<O: Clone + Default + Hittable> HittableList<O> {
         }
     }
 
-    pub fn from_object(object: Rc<O>) -> Self {
+    pub fn from_object(object: Arc<O>) -> Self {
         Self {
             objects: vec![object],
         }
@@ -28,7 +28,7 @@ impl<O: Clone + Default + Hittable> HittableList<O> {
         self.objects.clear();
     }
 
-    pub fn add(&mut self, object: Rc<O>) {
+    pub fn add(&mut self, object: Arc<O>) {
         self.objects.push(object);
     }
 }

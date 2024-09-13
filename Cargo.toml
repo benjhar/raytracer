@@ -8,10 +8,11 @@ edition = "2021"
 [dependencies]
 linalg = {path = "../linalg/", features=["random", "geometry", "hadamard", "physics"]}
 rand = "0.8.5"
+rayon = "1.10.0"
 tqdm = "0.7.0"
 
 [profile.release]
-strip = true
+strip = false
 debug = true
 codegen-units = 1
 lto = "fat"
