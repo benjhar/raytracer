@@ -1,4 +1,5 @@
 use linalg::vector::Vector;
+use rand::random;
 
 use crate::{colour::Colour, material::Material, Ray};
 
@@ -9,6 +10,13 @@ pub struct Dielectric {
 impl Dielectric {
     pub fn new(refractive_index: f64) -> Self {
         Self { refractive_index }
+    }
+
+    fn reflectance(cosine: f64, refractive_index: f64) -> f64 {
+        let mut r0 = (1.0 - refractive_index) / (1. + refractive_index);
+        r0 = r0 * r0;
+
+        r0 + (1. - r0) * (1. - cosine).powi(5)
     }
 }
 
@@ -34,7 +42,7 @@ impl Material for Dielectric {
 
         let cannot_refract = ri * sin_theta > 1.0;
 
-        let direction = if cannot_refract {
+        let direction = if cannot_refract || Self::reflectance(cos_theta, ri) > random::<f64>() {
             Vector::reflect(unit_direction, record.normal)
         } else {
             Vector::refract(&unit_direction, &record.normal, ri)
