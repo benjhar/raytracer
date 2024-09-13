@@ -61,5 +61,8 @@ fn main() {
     camera.lookat = Point::new([0., 0., -1.]);
     camera.vup = Vector::new([0., 1., 0.]);
 
+    camera.defocus_angle = 10.0;
+    camera.focus_dist = 3.4;
+
     camera.render(file, world);
 }
