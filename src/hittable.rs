@@ -1,10 +1,6 @@
 use std::rc::Rc;
 
-use crate::{
-    material::{Lambertian, Material},
-    ray::Ray,
-    Interval,
-};
+use crate::{lambertian::Lambertian, material::Material, ray::Ray, Interval};
 use linalg::{vector::Vector, Point};
 
 #[derive(Clone)]

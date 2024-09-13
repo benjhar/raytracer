@@ -1,10 +1,7 @@
 use linalg::Point;
 use raytracer::{
-    camera::Camera,
-    colour::Colour,
-    hittable_list::HittableList,
-    material::{Lambertian, Metal},
-    sphere::Sphere,
+    camera::Camera, colour::Colour, hittable_list::HittableList, lambertian::Lambertian,
+    metals::Metal, sphere::Sphere,
 };
 use std::{env, fs::OpenOptions, rc::Rc};
 

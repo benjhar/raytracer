@@ -2,7 +2,8 @@ use std::rc::Rc;
 
 use crate::{
     hittable::{self, Hittable},
-    material::{Lambertian, Material},
+    lambertian::Lambertian,
+    material::Material,
     Interval,
 };
 use linalg::Point;
