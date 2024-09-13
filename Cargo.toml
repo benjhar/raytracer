@@ -6,7 +6,7 @@ edition = "2021"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-linalg = {path = "../linalg/", features=["random", "geometry", "hadamard"]}
+linalg = {path = "../linalg/", features=["random", "geometry", "hadamard", "physics"]}
 rand = "0.8.5"
 tqdm = "0.7.0"
 

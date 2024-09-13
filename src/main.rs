@@ -1,7 +1,7 @@
 use linalg::Point;
 use raytracer::{
-    camera::Camera, colour::Colour, hittable_list::HittableList, lambertian::Lambertian,
-    metals::Metal, sphere::Sphere,
+    camera::Camera, colour::Colour, dielectric::Dielectric, hittable_list::HittableList,
+    lambertian::Lambertian, metals::Metal, sphere::Sphere,
 };
 use std::{env, fs::OpenOptions, rc::Rc};
 
@@ -19,7 +19,7 @@ fn main() {
 
     let material_ground = Rc::new(Lambertian::new(Colour::new([0.8, 0.8, 0.0])));
     let material_centre = Rc::new(Lambertian::new(Colour::new([0.1, 0.2, 0.5])));
-    let material_left = Rc::new(Metal::new(Colour::new([0.8, 0.8, 0.8]), 0.3));
+    let material_left = Rc::new(Dielectric::new(1.5));
     let material_right = Rc::new(Metal::new(Colour::new([0.8, 0.6, 0.2]), 1.0));
 
     world.add(Rc::new(Sphere::new(
