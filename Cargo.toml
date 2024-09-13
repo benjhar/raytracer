@@ -1,0 +1,20 @@
+[package]
+name = "raytracer"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+linalg = {path = "../linalg/", features=["random", "geometry", "hadamard"]}
+rand = "0.8.5"
+tqdm = "0.7.0"
+
+[profile.release]
+strip = true
+debug = true
+codegen-units = 1
+lto = "fat"
+
+[build]
+rustflags = ["-C", "target-cpu=native"]
