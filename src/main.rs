@@ -1,7 +1,7 @@
 use linalg::Point;
 use raytracer::{
     camera::Camera, colour::Colour, dielectric::Dielectric, hittable_list::HittableList,
-    lambertian::Lambertian, metals::Metal, sphere::Sphere,
+    lambertian::Lambertian, metals::Metal, sphere::Sphere, Vector,
 };
 use std::{env, fs::OpenOptions, rc::Rc};
 
@@ -55,6 +55,11 @@ fn main() {
     camera.width = 400;
     camera.samples_per_pixel = 100;
     camera.max_depth = 50;
+
+    camera.vfov = 20.;
+    camera.lookfrom = Point::new([-2., 2., 1.]);
+    camera.lookat = Point::new([0., 0., -1.]);
+    camera.vup = Vector::new([0., 1., 0.]);
 
     camera.render(file, world);
 }

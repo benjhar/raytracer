@@ -6,6 +6,7 @@ use tqdm::Iter;
 
 use crate::{
     colour::{write_colour, Colour},
+    degrees_to_radians,
     hittable::{HitRecord, Hittable},
     ray::Ray,
     Interval, Vector,
@@ -17,11 +18,18 @@ pub struct Camera {
     pub width: u32,
     pub samples_per_pixel: u32,
     pub max_depth: u32,
+    pub vfov: f64,
+    pub lookfrom: Point<f64, 3>,
+    pub lookat: Point<f64, 3>,
+    pub vup: Vector<f64, 3>,
     height: u32,
     centre: Point<f64, 3>,
     pixel_delta_v: Vector<f64, 3>,
     pixel_delta_u: Vector<f64, 3>,
     pixel00_loc: Point<f64, 3>,
+    u: Vector<f64, 3>,
+    v: Vector<f64, 3>,
+    w: Vector<f64, 3>,
 }
 
 impl Camera {
@@ -58,18 +66,27 @@ impl Camera {
     fn initialise(&mut self) {
         // Calculate the image height, and ensure that it's at least 1.
         self.height = (self.width as f64 / self.aspect_ratio) as u32;
-
         if self.height < 1 {
             self.height = 1;
         }
-        let focal_length = 1.0;
-        let viewport_height = 2.0;
+
+        self.centre = self.lookfrom;
+
+        // Determine viewport dimensions
+        let focal_length = (self.lookfrom - self.lookat).length();
+        let theta = degrees_to_radians(self.vfov);
+        let h = (theta / 2.).tan();
+        let viewport_height = 2.0 * h * focal_length;
         let viewport_width = viewport_height * (self.width as f64 / self.height as f64);
-        self.centre = Point::new([0., 0., 0.]);
+
+        // Calculate the u,v,w basis vectors for the camera coordinate frame
+        self.w = (self.lookfrom - self.lookat).unit();
+        self.u = self.vup.cross(self.w).unit();
+        self.v = self.w.cross(self.u);
 
         // Calculate vectors across horizontal and down vertical viewport edges
-        let viewport_u = Vector::new([viewport_width, 0., 0.]);
-        let viewport_v = Vector::new([0., -viewport_height, 0.]);
+        let viewport_u = viewport_width * self.u;
+        let viewport_v = viewport_height * -self.v;
 
         // Calculate horizontal and vertical delta vectors from pixel to pixel
         self.pixel_delta_u = viewport_u / self.width as f64;
@@ -77,7 +94,7 @@ impl Camera {
 
         // Calculate the location of the upper left pixel;
         let viewport_upper_left =
-            self.centre - Vector::new([0., 0., focal_length]) - viewport_u / 2. - viewport_v / 2.;
+            self.centre - (focal_length * self.w) - viewport_u / 2. - viewport_v / 2.;
         self.pixel00_loc = viewport_upper_left + (self.pixel_delta_u + self.pixel_delta_v) * 0.5;
     }
 
