@@ -1,4 +1,5 @@
 use linalg::Point;
+use rand::random;
 use std::io;
 use std::io::Write;
 use tqdm::Iter;
@@ -6,9 +7,8 @@ use tqdm::Iter;
 use crate::{
     colour::{write_colour, Colour},
     hittable::{HitRecord, Hittable},
-    random_f64,
     ray::Ray,
-    Interval, Vector, INFINITY,
+    Interval, Vector,
 };
 
 #[derive(Default)]
@@ -88,7 +88,7 @@ impl Camera {
 
         let mut record = HitRecord::default();
         // 0.001 is used rather than zero to prevent shadow acne
-        if world.hit(&ray, Interval::new(0.001, INFINITY), &mut record) {
+        if world.hit(&ray, Interval::new(0.001, f64::INFINITY), &mut record) {
             let mut attenuation = Colour::new([1., 1., 1.]);
             let mut scattered = Ray::default();
             if record
@@ -123,8 +123,8 @@ impl Camera {
 
     /// Returns a random point in the square surrounding a pixel at the origin
     fn pixel_sample_square(&self) -> Vector<f64, 3> {
-        let px = -0.5 * random_f64();
-        let py = -0.5 * random_f64();
+        let px = -0.5 * random::<f64>();
+        let py = -0.5 * random::<f64>();
         (px * self.pixel_delta_u) + (py * self.pixel_delta_v)
     }
 }
