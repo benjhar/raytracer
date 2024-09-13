@@ -1,13 +1,31 @@
-use crate::{material::Materials, ray::Ray, Interval};
+use std::rc::Rc;
+
+use crate::{
+    material::{Lambertian, Material},
+    ray::Ray,
+    Interval,
+};
 use linalg::{vector::Vector, Point};
 
-#[derive(Clone, Copy, Default)]
+#[derive(Clone)]
 pub struct HitRecord {
     pub p: Point<f64, 3>,
     pub normal: Vector<f64, 3>,
-    pub material: Materials,
+    pub material: Rc<dyn Material>,
     pub distance: f64,
     pub front_face: bool,
+}
+
+impl Default for HitRecord {
+    fn default() -> Self {
+        HitRecord {
+            p: Point::default(),
+            normal: Vector::default(),
+            material: Rc::new(Lambertian::default()),
+            distance: 0.0,
+            front_face: true,
+        }
+    }
 }
 
 impl HitRecord {

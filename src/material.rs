@@ -12,33 +12,6 @@ pub trait Material {
     ) -> bool;
 }
 
-#[derive(Clone, Copy, Debug)]
-pub enum Materials {
-    Lambertian(Lambertian),
-    Metal(Metal),
-}
-
-impl Materials {
-    pub fn scatter(
-        &self,
-        ray_in: &Ray,
-        record: &HitRecord,
-        attenuation: &mut Colour,
-        scattered: &mut Ray,
-    ) -> bool {
-        match self {
-            Materials::Lambertian(l) => l.scatter(ray_in, record, attenuation, scattered),
-            Materials::Metal(m) => m.scatter(ray_in, record, attenuation, scattered),
-        }
-    }
-}
-
-impl Default for Materials {
-    fn default() -> Self {
-        Materials::Lambertian(Lambertian::default())
-    }
-}
-
 #[derive(Clone, Copy, Default, Debug)]
 pub struct Lambertian {
     albedo: Colour,
@@ -58,7 +31,7 @@ impl Material for Lambertian {
         attenuation: &mut Colour,
         scattered: &mut Ray,
     ) -> bool {
-        let mut scatter_direction = record.normal.hadamard(Vector::random_unit_vector());
+        let mut scatter_direction = record.normal + Vector::random_unit_vector();
 
         if scatter_direction.near_zero() {
             scatter_direction = record.normal;

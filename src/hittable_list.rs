@@ -48,7 +48,7 @@ impl<O: Clone + Default + Material + Hittable> Hittable for HittableList<O> {
             if object.hit(ray, Interval::new(ray_t.min, closest_so_far), &mut temp_rec) {
                 hit_anything = true;
                 closest_so_far = temp_rec.distance;
-                *record = temp_rec;
+                *record = temp_rec.clone();
             }
         }
 

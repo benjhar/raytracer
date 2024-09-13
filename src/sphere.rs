@@ -2,24 +2,34 @@ use std::rc::Rc;
 
 use crate::{
     hittable::{self, Hittable},
-    material::{Material, Materials},
+    material::{Lambertian, Material},
     Interval,
 };
 use linalg::Point;
 
-#[derive(Clone, Default)]
+#[derive(Clone)]
 pub struct Sphere {
     centre: Point<f64, 3>,
     radius: f64,
-    material: Rc<Materials>,
+    material: Rc<dyn Material>,
 }
 
 impl Sphere {
-    pub fn new(centre: Point<f64, 3>, radius: f64, material: Rc<Materials>) -> Self {
+    pub fn new(centre: Point<f64, 3>, radius: f64, material: Rc<dyn Material>) -> Self {
         Self {
             centre,
             radius,
             material,
+        }
+    }
+}
+
+impl Default for Sphere {
+    fn default() -> Self {
+        Sphere {
+            centre: Point::default(),
+            radius: 0.0,
+            material: Rc::new(Lambertian::default()),
         }
     }
 }
@@ -55,7 +65,7 @@ impl Hittable for Sphere {
         record.p = ray.at(record.distance);
         let outward_normal = (record.p - self.centre) / self.radius;
         record.set_face_normal(ray, &outward_normal);
-        record.material = *self.material;
+        record.material = self.material.clone();
 
         true
     }

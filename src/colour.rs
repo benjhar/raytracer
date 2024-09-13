@@ -3,7 +3,10 @@ use crate::{Interval, Vector};
 pub type Colour = Vector<f64, 3>;
 
 fn linear_to_gamma(linear_component: f64) -> f64 {
-    linear_component.sqrt()
+    if linear_component > 0.0 {
+        return linear_component.sqrt();
+    }
+    0.0
 }
 
 pub fn write_colour(out: &mut String, pixel_colour: Colour, samples_per_pixel: u32) {
@@ -25,9 +28,9 @@ pub fn write_colour(out: &mut String, pixel_colour: Colour, samples_per_pixel: u
     out.push_str(
         format!(
             "{} {} {}\n",
-            (256. * INTENSITY.clamp(r)) as u8,
-            (256. * INTENSITY.clamp(g)) as u8,
-            (256. * INTENSITY.clamp(b)) as u8
+            (255. * INTENSITY.clamp(r)) as u8,
+            (255. * INTENSITY.clamp(g)) as u8,
+            (255. * INTENSITY.clamp(b)) as u8
         )
         .as_str(),
     )
