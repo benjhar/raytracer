@@ -10,15 +10,10 @@ fn linear_to_gamma(linear_component: f64) -> f64 {
 }
 
 pub fn write_colour(out: &mut String, pixel_colour: Colour, samples_per_pixel: u32) {
+    let pixel_colour = pixel_colour * (1. / samples_per_pixel as f64);
     let mut r = pixel_colour.x();
     let mut g = pixel_colour.y();
     let mut b = pixel_colour.z();
-
-    let scale = 1.0 / samples_per_pixel as f64;
-    // TODO: SIMD?
-    r *= scale;
-    g *= scale;
-    b *= scale;
 
     r = linear_to_gamma(r);
     g = linear_to_gamma(g);
