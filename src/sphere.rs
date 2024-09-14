@@ -1,16 +1,16 @@
-use std::{rc::Rc, sync::Arc};
+use std::sync::Arc;
 
 use crate::{
     hittable::{self, Hittable},
     lambertian::Lambertian,
     material::Material,
-    Interval,
+    Interval, Ray,
 };
-use linalg::Point;
+use linalg::{vector::Vector, Point};
 
 #[derive(Clone)]
 pub struct Sphere {
-    centre: Point<f64, 3>,
+    centre: Ray,
     radius: f64,
     material: Arc<dyn Material>,
 }
@@ -19,11 +19,24 @@ unsafe impl Send for Sphere {}
 unsafe impl Sync for Sphere {}
 
 impl Sphere {
-    pub fn new(centre: Point<f64, 3>, radius: f64, material: Arc<dyn Material>) -> Self {
-        Self {
-            centre,
-            radius,
-            material,
+    pub fn new(
+        centre: Point<f64, 3>,
+        centre2: Option<Point<f64, 3>>,
+        radius: f64,
+        material: Arc<dyn Material>,
+    ) -> Self {
+        if let Some(c2) = centre2 {
+            Self {
+                centre: Ray::new(centre, c2 - centre, None),
+                radius,
+                material,
+            }
+        } else {
+            Self {
+                centre: Ray::new(centre, Vector::new([0., 0., 0.]), None),
+                radius,
+                material,
+            }
         }
     }
 }
@@ -31,7 +44,7 @@ impl Sphere {
 impl Default for Sphere {
     fn default() -> Self {
         Sphere {
-            centre: Point::default(),
+            centre: Ray::default(),
             radius: 0.0,
             material: Arc::new(Lambertian::default()),
         }
@@ -45,7 +58,8 @@ impl Hittable for Sphere {
         ray_t: Interval,
         record: &mut hittable::HitRecord,
     ) -> bool {
-        let oc = ray.origin() - self.centre;
+        let current_centre = self.centre.at(ray.time());
+        let oc = ray.origin() - current_centre;
         let a = ray.direction().length_squared();
         let half_b = oc.dot(&ray.direction());
         let c = oc.length_squared() - self.radius * self.radius;
@@ -67,7 +81,7 @@ impl Hittable for Sphere {
 
         record.distance = root;
         record.p = ray.at(record.distance);
-        let outward_normal = (record.p - self.centre) / self.radius;
+        let outward_normal = (record.p - current_centre) / self.radius;
         record.set_face_normal(ray, &outward_normal);
         record.material = self.material.clone();
 

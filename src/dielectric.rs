@@ -48,7 +48,7 @@ impl Material for Dielectric {
             Vector::refract(&unit_direction, &record.normal, ri)
         };
 
-        *scattered = Ray::new(record.p, direction);
+        *scattered = Ray::new(record.p, direction, Some(ray_in.time()));
 
         true
     }

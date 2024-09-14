@@ -154,8 +154,9 @@ impl Camera {
             self.defocus_disk_sample()
         };
         let ray_direction = pixel_sample - ray_origin;
+        let ray_time = random::<f64>();
 
-        Ray::new(ray_origin, ray_direction)
+        Ray::new(ray_origin, ray_direction, Some(ray_time))
     }
 
     /// Returns a random point in the square surrounding a pixel at the origin

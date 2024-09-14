@@ -10,8 +10,8 @@ fn setup_camera() -> Camera {
     let mut camera = Camera::default();
 
     camera.aspect_ratio = 16.0 / 9.0;
-    camera.width = 1920;
-    camera.samples_per_pixel = 50;
+    camera.width = 400;
+    camera.samples_per_pixel = 100;
     camera.max_depth = 50;
 
     camera.vfov = 20.;
@@ -40,6 +40,7 @@ fn main() {
     let material_ground = Arc::new(Lambertian::new(Colour::new([0.5, 0.5, 0.5])));
     world.add(Arc::new(Sphere::new(
         Point::new([0., -1000., 0.]),
+        None,
         1000.,
         material_ground,
     )));
@@ -58,17 +59,18 @@ fn main() {
                     // diffuse
                     let albedo = Colour::random().hadamard(Colour::random());
                     let mat = Arc::new(Lambertian::new(albedo));
-                    world.add(Arc::new(Sphere::new(centre, 0.2, mat)));
+                    let centre2 = centre + Vector::new([0., random::<f64>() * 0.5, 0.]);
+                    world.add(Arc::new(Sphere::new(centre, Some(centre2), 0.2, mat)));
                 } else if choose_mat < 0.95 {
                     // metal
                     let albedo = Colour::random_range(0.5, 1.);
                     let fuzz = random::<f64>() * 0.5;
                     let mat = Arc::new(Metal::new(albedo, fuzz));
-                    world.add(Arc::new(Sphere::new(centre, 0.2, mat)));
+                    world.add(Arc::new(Sphere::new(centre, None, 0.2, mat)));
                 } else {
                     // glass
                     let mat = Arc::new(Dielectric::new(1.5));
-                    world.add(Arc::new(Sphere::new(centre, 0.2, mat)));
+                    world.add(Arc::new(Sphere::new(centre, None, 0.2, mat)));
                 }
             }
         }
@@ -77,6 +79,7 @@ fn main() {
     let material1 = Arc::new(Dielectric::new(1.5));
     world.add(Arc::new(Sphere::new(
         Point::new([0., 1., 0.]),
+        None,
         1.0,
         material1,
     )));
@@ -84,6 +87,7 @@ fn main() {
     let material2 = Arc::new(Lambertian::new(Colour::new([0.4, 0.2, 0.1])));
     world.add(Arc::new(Sphere::new(
         Point::new([-4., 1., 0.]),
+        None,
         1.0,
         material2,
     )));
@@ -91,6 +95,7 @@ fn main() {
     let material3 = Arc::new(Metal::new(Colour::new([0.7, 0.6, 0.5]), 0.));
     world.add(Arc::new(Sphere::new(
         Point::new([4., 1., 0.]),
+        None,
         1.,
         material3,
     )));
