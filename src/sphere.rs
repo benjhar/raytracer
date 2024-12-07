@@ -1,6 +1,7 @@
 use std::sync::Arc;
 
 use crate::{
+    aabb::AABB,
     hittable::{self, Hittable},
     lambertian::Lambertian,
     material::Material,
@@ -13,6 +14,7 @@ pub struct Sphere {
     centre: Ray,
     radius: f64,
     material: Arc<dyn Material>,
+    bbox: AABB,
 }
 
 unsafe impl Send for Sphere {}
@@ -26,16 +28,27 @@ impl Sphere {
         material: Arc<dyn Material>,
     ) -> Self {
         if let Some(c2) = centre2 {
+            let centre = Ray::new(centre, c2 - centre, None);
+
+            let rvec = Vector::new([radius; 3]);
+            let box1 = AABB::build(centre.at(0.) - rvec, centre.at(1.) + rvec);
+            let box2 = AABB::build(centre.at(1.) - rvec, centre.at(0.) + rvec);
+            let bbox = AABB::enclosing(box1, box2);
+
             Self {
-                centre: Ray::new(centre, c2 - centre, None),
+                centre,
                 radius,
                 material,
+                bbox,
             }
         } else {
+            let rvec = Vector::new([radius; 3]);
+            let bbox = AABB::build(centre - rvec, centre + rvec);
             Self {
                 centre: Ray::new(centre, Vector::new([0., 0., 0.]), None),
                 radius,
                 material,
+                bbox,
             }
         }
     }
@@ -47,6 +60,7 @@ impl Default for Sphere {
             centre: Ray::default(),
             radius: 0.0,
             material: Arc::new(Lambertian::default()),
+            bbox: AABB::default(),
         }
     }
 }
@@ -86,6 +100,9 @@ impl Hittable for Sphere {
         record.material = self.material.clone();
 
         true
+    }
+    fn bounding_box(&self) -> AABB {
+        self.bbox
     }
 }
 

@@ -1,26 +1,30 @@
 use std::sync::Arc;
 
 use crate::{
+    aabb::AABB,
     hittable::{HitRecord, Hittable},
     material::Material,
     Interval,
 };
 
 #[derive(Default, Clone)]
-pub struct HittableList<O: Clone + Default + Hittable> {
+pub struct HittableList<O: Clone + Hittable> {
     pub objects: Vec<Arc<O>>,
+    bbox: AABB,
 }
 
-impl<O: Clone + Default + Hittable> HittableList<O> {
+impl<O: Clone + Hittable> HittableList<O> {
     pub fn new() -> Self {
         Self {
             objects: Vec::new(),
+            bbox: AABB::default(),
         }
     }
 
     pub fn from_object(object: Arc<O>) -> Self {
         Self {
-            objects: vec![object],
+            objects: vec![object.clone()],
+            bbox: object.bounding_box(),
         }
     }
 
@@ -29,11 +33,12 @@ impl<O: Clone + Default + Hittable> HittableList<O> {
     }
 
     pub fn add(&mut self, object: Arc<O>) {
-        self.objects.push(object);
+        self.objects.push(object.clone());
+        self.bbox = AABB::enclosing(self.bbox, object.bounding_box());
     }
 }
 
-impl<O: Clone + Default + Material + Hittable> Hittable for HittableList<O> {
+impl<O: Clone + Default + Hittable> Hittable for HittableList<O> {
     fn hit(
         &self,
         ray: &crate::ray::Ray,
@@ -53,5 +58,9 @@ impl<O: Clone + Default + Material + Hittable> Hittable for HittableList<O> {
         }
 
         hit_anything
+    }
+
+    fn bounding_box(&self) -> AABB {
+        self.bbox
     }
 }

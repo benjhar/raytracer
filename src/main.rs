@@ -1,8 +1,8 @@
 use linalg::Point;
 use rand::random;
 use raytracer::{
-    camera::Camera, colour::Colour, dielectric::Dielectric, hittable_list::HittableList,
-    lambertian::Lambertian, metals::Metal, sphere::Sphere, Vector,
+    bvh::BVHNode, camera::Camera, colour::Colour, dielectric::Dielectric,
+    hittable_list::HittableList, lambertian::Lambertian, metals::Metal, sphere::Sphere, Vector,
 };
 use std::{env, fs::OpenOptions, sync::Arc};
 
@@ -10,8 +10,8 @@ fn setup_camera() -> Camera {
     let mut camera = Camera::default();
 
     camera.aspect_ratio = 16.0 / 9.0;
-    camera.width = 400;
-    camera.samples_per_pixel = 100;
+    camera.width = 200;
+    camera.samples_per_pixel = 1000;
     camera.max_depth = 50;
 
     camera.vfov = 20.;
@@ -99,6 +99,8 @@ fn main() {
         1.,
         material3,
     )));
+
+    let world = HittableList::from_object(Arc::new(BVHNode::build(world)));
 
     let mut camera = setup_camera();
 

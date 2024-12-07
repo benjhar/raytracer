@@ -1,4 +1,4 @@
-#[derive(Default, Clone, Copy)]
+#[derive(Clone, Copy)]
 pub struct Interval {
     pub min: f64,
     pub max: f64,
@@ -7,6 +7,13 @@ pub struct Interval {
 impl Interval {
     pub const fn new(min: f64, max: f64) -> Self {
         Interval { min, max }
+    }
+
+    /// Creates an interval tightly enclosing the two input intervals
+    pub fn enclosing(a: Interval, b: Interval) -> Self {
+        let min = if a.min <= b.min { a.min } else { b.min };
+        let max = if a.max >= b.max { a.max } else { b.max };
+        Self { min, max }
     }
 
     pub fn contains(&self, x: f64) -> bool {
@@ -27,6 +34,14 @@ impl Interval {
         x
     }
 
+    pub fn expand(&self, delta: f64) -> Interval {
+        let padding = delta / 2.;
+        let mut new = *self;
+        new.min -= padding;
+        new.max += padding;
+        new
+    }
+
     pub const fn empty() -> Self {
         Self {
             min: f64::INFINITY,
@@ -39,5 +54,11 @@ impl Interval {
             min: f64::NEG_INFINITY,
             max: f64::INFINITY,
         }
+    }
+}
+
+impl Default for Interval {
+    fn default() -> Self {
+        Self::empty()
     }
 }

@@ -1,6 +1,6 @@
 use std::sync::Arc;
 
-use crate::{lambertian::Lambertian, material::Material, ray::Ray, Interval};
+use crate::{aabb::AABB, lambertian::Lambertian, material::Material, ray::Ray, Interval};
 use linalg::{vector::Vector, Point};
 
 #[derive(Clone)]
@@ -39,4 +39,16 @@ impl HitRecord {
 
 pub trait Hittable: Send + Sync {
     fn hit(&self, ray: &Ray, ray_t: Interval, record: &mut HitRecord) -> bool;
+
+    fn bounding_box(&self) -> AABB;
+}
+
+impl Hittable for &dyn Hittable {
+    fn hit(&self, ray: &Ray, ray_t: Interval, record: &mut HitRecord) -> bool {
+        (*self).hit(ray, ray_t, record)
+    }
+
+    fn bounding_box(&self) -> AABB {
+        (*self).bounding_box()
+    }
 }
