@@ -10,8 +10,8 @@ fn setup_camera() -> Camera {
     let mut camera = Camera::default();
 
     camera.aspect_ratio = 16.0 / 9.0;
-    camera.width = 200;
-    camera.samples_per_pixel = 1000;
+    camera.width = 400;
+    camera.samples_per_pixel = 100;
     camera.max_depth = 50;
 
     camera.vfov = 20.;
