@@ -2,8 +2,8 @@ use linalg::Point;
 use rand::{Rng, SeedableRng};
 use raytracer::{
     bvh::BVHNode, camera::Camera, checker_texture::CheckerTexture, colour::Colour,
-    dielectric::Dielectric, hittable_list::HittableList, lambertian::Lambertian, metals::Metal,
-    sphere::Sphere, Vector,
+    dielectric::Dielectric, hittable_list::HittableList, image_texture::ImageTexture,
+    lambertian::Lambertian, metals::Metal, sphere::Sphere, Vector,
 };
 use std::{
     env,
@@ -15,8 +15,8 @@ fn setup_camera() -> Camera {
     let mut camera = Camera::default();
 
     camera.aspect_ratio = 16.0 / 9.0;
-    camera.width = 1920;
-    camera.samples_per_pixel = 300;
+    camera.width = 400;
+    camera.samples_per_pixel = 100;
     camera.max_depth = 50;
 
     camera.vfov = 20.;
@@ -113,6 +113,71 @@ fn bouncing_spheres(file: File) {
     camera.render(file, world);
 }
 
+fn checkered_spheres(file: File) {
+    let mut world = HittableList::default();
+
+    let checker = Arc::new(CheckerTexture::from_colours(
+        0.01,
+        &Colour::new([0.2, 0.3, 0.1]),
+        &Colour::new([0.9, 0.9, 0.9]),
+    ));
+
+    let sphere_mat = Arc::new(Lambertian::new(checker.clone()));
+
+    world.add(Arc::new(Sphere::new(
+        Point::new([0., -10., 0.]),
+        None,
+        10.,
+        sphere_mat.clone(),
+    )));
+    world.add(Arc::new(Sphere::new(
+        Point::new([0., 10., 0.]),
+        None,
+        10.,
+        sphere_mat,
+    )));
+
+    let mut cam = Camera::default();
+
+    cam.aspect_ratio = 16.0 / 9.0;
+    cam.width = 400;
+    cam.samples_per_pixel = 100;
+    cam.max_depth = 50;
+
+    cam.vfov = 20.;
+    cam.lookfrom = Point::new([13., 2., 3.]);
+    cam.lookat = Point::new([0., 0., 0.]);
+    cam.vup = Vector::new([0., 1., 0.]);
+
+    cam.defocus_angle = 0.;
+    cam.focus_dist = 10.;
+
+    cam.render(file, world);
+}
+
+fn earth(file: File) {
+    let earth_texture = Arc::new(ImageTexture::try_file("./assets/earthmap.jpg").unwrap());
+    let earth_surface = Arc::new(Lambertian::new(earth_texture));
+    let globe = Arc::new(Sphere::new(Point::new([0.; 3]), None, 2., earth_surface));
+
+    let mut cam = Camera::default();
+
+    cam.aspect_ratio = 16.0 / 9.0;
+    cam.width = 400;
+    cam.samples_per_pixel = 100;
+    cam.max_depth = 50;
+
+    cam.vfov = 20.;
+    cam.lookfrom = Point::new([8.485, 8.485, 0.]);
+    cam.lookat = Point::new([0.; 3]);
+    cam.vup = Vector::new([0., 1., 0.]);
+
+    cam.defocus_angle = 0.0;
+    cam.focus_dist = 10.0;
+
+    cam.render(file, HittableList::from_object(globe));
+}
+
 fn main() {
     let args: Vec<String> = env::args().collect();
 
@@ -123,5 +188,11 @@ fn main() {
         .open(args[1].clone())
         .unwrap();
 
-    bouncing_spheres(file);
+    let scene = args[2].parse().unwrap();
+
+    match scene {
+        1 => checkered_spheres(file),
+        2 => earth(file),
+        _ => bouncing_spheres(file),
+    };
 }

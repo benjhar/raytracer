@@ -31,11 +31,16 @@ impl CheckerTexture {
 
 impl Texture for CheckerTexture {
     fn value(&self, u: f64, v: f64, p: &linalg::Point<f64, 3>) -> Colour {
-        let xint = (self.inv_scale * p.x()).floor() as i32;
-        let yint = (self.inv_scale * p.y()).floor() as i32;
-        let zint = (self.inv_scale * p.z()).floor() as i32;
+        // let xint = (self.inv_scale * p.x()).floor() as i32;
+        // let yint = (self.inv_scale * p.y()).floor() as i32;
+        // let zint = (self.inv_scale * p.z()).floor() as i32;
+        //
+        // let is_even = (xint + yint + zint) % 2 == 0;
 
-        let is_even = (xint + yint + zint) % 2 == 0;
+        let uint = (self.inv_scale * u).floor() as i32;
+        let vint = (self.inv_scale * v).floor() as i32;
+
+        let is_even = (uint + vint) % 2 == 0;
 
         if is_even {
             self.even.value(u, v, p)
