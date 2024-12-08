@@ -1,6 +1,7 @@
 pub mod aabb;
 pub mod bvh;
 pub mod camera;
+pub mod checker_texture;
 pub mod colour;
 pub mod dielectric;
 pub mod hittable;
@@ -10,7 +11,9 @@ pub mod lambertian;
 pub mod material;
 pub mod metals;
 pub mod ray;
+pub mod solid_colour;
 pub mod sphere;
+pub mod texture;
 
 use std::f64::consts::PI;
 

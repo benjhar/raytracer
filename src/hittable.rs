@@ -1,6 +1,8 @@
 use std::sync::Arc;
 
-use crate::{aabb::AABB, lambertian::Lambertian, material::Material, ray::Ray, Interval};
+use crate::{
+    aabb::AABB, colour::Colour, lambertian::Lambertian, material::Material, ray::Ray, Interval,
+};
 use linalg::{vector::Vector, Point};
 
 #[derive(Clone)]
@@ -9,6 +11,8 @@ pub struct HitRecord {
     pub normal: Vector<f64, 3>,
     pub material: Arc<dyn Material>,
     pub distance: f64,
+    pub u: f64,
+    pub v: f64,
     pub front_face: bool,
 }
 
@@ -17,8 +21,10 @@ impl Default for HitRecord {
         HitRecord {
             p: Point::default(),
             normal: Vector::default(),
-            material: Arc::new(Lambertian::default()),
+            material: Arc::new(Lambertian::from_colour(Colour::new([1.; 3]))),
             distance: 0.0,
+            u: 0.,
+            v: 0.,
             front_face: true,
         }
     }

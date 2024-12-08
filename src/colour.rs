@@ -1,5 +1,6 @@
 use crate::{Interval, Vector};
 
+const INTENSITY: Interval = Interval::new(0.000, 0.999);
 pub type Colour = Vector<f64, 3>;
 
 fn linear_to_gamma(linear_component: f64) -> f64 {
@@ -19,7 +20,6 @@ pub fn write_colour(out: &mut String, pixel_colour: Colour, samples_per_pixel: u
     g = linear_to_gamma(g);
     b = linear_to_gamma(b);
 
-    static INTENSITY: Interval = Interval::new(0.000, 0.999);
     out.push_str(
         format!(
             "{} {} {}\n",

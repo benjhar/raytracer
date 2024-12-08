@@ -1,11 +1,7 @@
 use std::{cmp::Ordering, sync::Arc};
 
-use linalg::vector::Vector;
-use rand::Rng;
-
 use crate::{
-    aabb::AABB, hittable::Hittable, hittable_list::HittableList, lambertian, material::Material,
-    sphere::Sphere,
+    aabb::AABB, hittable::Hittable, hittable_list::HittableList, sphere::Sphere, Interval,
 };
 
 #[derive(Clone)]
@@ -46,8 +42,14 @@ impl BVHNode {
         start: usize,
         end: usize,
     ) -> Self {
-        let mut rng = rand::thread_rng();
-        let axis = rng.gen_range(0..=2);
+        let mut bbox = AABB::empty();
+        for object in &objects {
+            bbox = AABB::enclosing(bbox, object.bounding_box());
+        }
+
+        let axis = bbox.longest_axis();
+        // let mut rng = rand::thread_rng();
+        // let axis = rng.gen_range(0..=2);
 
         let comparator = match axis {
             0 => Self::box_x_compare,
@@ -100,7 +102,14 @@ impl Hittable for BVHNode {
         }
 
         let hit_left = self.left.hit(ray, ray_t, record);
-        let hit_right = self.right.hit(ray, ray_t, record);
+        let hit_right = self.right.hit(
+            ray,
+            Interval::new(
+                ray_t.min,
+                if hit_left { record.distance } else { ray_t.max },
+            ),
+            record,
+        );
 
         hit_left || hit_right
     }
@@ -113,18 +122,8 @@ impl Hittable for BVHNode {
 impl Default for BVHNode {
     fn default() -> Self {
         Self {
-            left: Arc::new(Sphere::new(
-                Vector::zero(),
-                None,
-                0.0,
-                Arc::new(lambertian::Lambertian::default()),
-            )),
-            right: Arc::new(Sphere::new(
-                Vector::zero(),
-                None,
-                0.0,
-                Arc::new(lambertian::Lambertian::default()),
-            )),
+            left: Arc::new(Sphere::default()),
+            right: Arc::new(Sphere::default()),
             bbox: AABB::default(),
         }
     }

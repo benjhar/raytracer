@@ -1,15 +1,29 @@
+use std::sync::Arc;
+
 use linalg::vector::Vector;
 
-use crate::{colour::Colour, hittable::HitRecord, material::Material, Ray};
+use crate::{
+    colour::Colour, hittable::HitRecord, material::Material, solid_colour::SolidColour,
+    texture::Texture, Ray,
+};
 
-#[derive(Clone, Copy, Default, Debug)]
+#[derive(Clone)]
 pub struct Lambertian {
-    albedo: Colour,
+    texture: Arc<dyn Texture>,
 }
 
+unsafe impl Send for Lambertian {}
+unsafe impl Sync for Lambertian {}
+
 impl Lambertian {
-    pub fn new(albedo: Colour) -> Self {
-        Self { albedo }
+    pub fn new(texture: Arc<dyn Texture>) -> Self {
+        Self { texture }
+    }
+
+    pub fn from_colour(colour: Colour) -> Self {
+        Self {
+            texture: Arc::new(SolidColour::new(colour)),
+        }
     }
 }
 
@@ -28,7 +42,7 @@ impl Material for Lambertian {
         }
 
         *scattered = Ray::new(record.p, scatter_direction, Some(ray_in.time()));
-        *attenuation = self.albedo;
+        *attenuation = self.texture.value(record.u, record.v, &record.p);
 
         true
     }

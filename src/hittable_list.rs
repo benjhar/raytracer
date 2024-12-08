@@ -3,7 +3,6 @@ use std::sync::Arc;
 use crate::{
     aabb::AABB,
     hittable::{HitRecord, Hittable},
-    material::Material,
     Interval,
 };
 

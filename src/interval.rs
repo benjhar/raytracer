@@ -42,6 +42,10 @@ impl Interval {
         new
     }
 
+    pub fn size(&self) -> f64 {
+        (self.max - self.min).abs()
+    }
+
     pub const fn empty() -> Self {
         Self {
             min: f64::INFINITY,

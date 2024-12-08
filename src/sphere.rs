@@ -2,6 +2,7 @@ use std::sync::Arc;
 
 use crate::{
     aabb::AABB,
+    colour::Colour,
     hittable::{self, Hittable},
     lambertian::Lambertian,
     material::Material,
@@ -31,8 +32,8 @@ impl Sphere {
             let centre = Ray::new(centre, c2 - centre, None);
 
             let rvec = Vector::new([radius; 3]);
-            let box1 = AABB::build(centre.at(0.) - rvec, centre.at(1.) + rvec);
-            let box2 = AABB::build(centre.at(1.) - rvec, centre.at(0.) + rvec);
+            let box1 = AABB::build(centre.at(0.) - rvec, centre.at(0.) + rvec);
+            let box2 = AABB::build(centre.at(1.) - rvec, centre.at(1.) + rvec);
             let bbox = AABB::enclosing(box1, box2);
 
             Self {
@@ -59,7 +60,7 @@ impl Default for Sphere {
         Sphere {
             centre: Ray::default(),
             radius: 0.0,
-            material: Arc::new(Lambertian::default()),
+            material: Arc::new(Lambertian::from_colour(Colour::new([0.8; 3]))),
             bbox: AABB::default(),
         }
     }
