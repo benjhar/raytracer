@@ -11,6 +11,8 @@ pub mod interval;
 pub mod lambertian;
 pub mod material;
 pub mod metals;
+pub mod noise_texture;
+pub mod perlin;
 pub mod ray;
 pub mod rtw_image;
 pub mod solid_colour;
