@@ -1,6 +1,11 @@
 use linalg::vector::Vector;
 
-use crate::{colour::Colour, hittable::HitRecord, material::Material, Ray};
+use crate::{
+    engine::{hittable::HitRecord, ray::Ray},
+    util::colour::Colour,
+};
+
+use super::Material;
 
 #[derive(Clone, Copy, Default, Debug)]
 pub struct Metal {

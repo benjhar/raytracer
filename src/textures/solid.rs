@@ -1,18 +1,20 @@
 use linalg::Point;
 
-use crate::{colour::Colour, texture::Texture};
+use crate::util::colour::Colour;
 
-pub struct SolidColour {
+use super::Texture;
+
+pub struct Solid {
     albedo: Colour,
 }
 
-impl SolidColour {
+impl Solid {
     pub fn new(albedo: Colour) -> Self {
         Self { albedo }
     }
 }
 
-impl Texture for SolidColour {
+impl Texture for Solid {
     fn value(&self, _: f64, _: f64, _: &Point<f64, 3>) -> Colour {
         self.albedo
     }

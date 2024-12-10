@@ -1,6 +1,6 @@
 use linalg::Point;
 
-use crate::{Interval, Ray};
+use crate::{engine::ray::Ray, util::interval::Interval};
 
 #[derive(Default, Clone, Copy)]
 pub struct AABB {

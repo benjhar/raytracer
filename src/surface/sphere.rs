@@ -1,14 +1,16 @@
 use std::{f64::consts::PI, sync::Arc};
 
-use crate::{
-    aabb::AABB,
-    colour::Colour,
-    hittable::{self, Hittable},
-    lambertian::Lambertian,
-    material::Material,
-    Interval, Ray,
-};
 use linalg::{vector::Vector, Point};
+
+use crate::{
+    bounding_volume_hierarchies::aabb::AABB,
+    engine::{
+        hittable::{HitRecord, Hittable},
+        ray::Ray,
+    },
+    materials::{Lambertian, Material},
+    util::{colour::Colour, interval::Interval},
+};
 
 #[derive(Clone)]
 pub struct Sphere {
@@ -83,12 +85,7 @@ impl Default for Sphere {
 }
 
 impl Hittable for Sphere {
-    fn hit(
-        &self,
-        ray: &crate::ray::Ray,
-        ray_t: Interval,
-        record: &mut hittable::HitRecord,
-    ) -> bool {
+    fn hit(&self, ray: &Ray, ray_t: Interval, record: &mut HitRecord) -> bool {
         let current_centre = self.centre.at(ray.time());
         let oc = ray.origin() - current_centre;
         let a = ray.direction().length_squared();
@@ -127,10 +124,10 @@ impl Hittable for Sphere {
 impl Material for Sphere {
     fn scatter(
         &self,
-        ray_in: &crate::Ray,
-        record: &hittable::HitRecord,
-        attenuation: &mut crate::colour::Colour,
-        scattered: &mut crate::Ray,
+        ray_in: &Ray,
+        record: &HitRecord,
+        attenuation: &mut Colour,
+        scattered: &mut Ray,
     ) -> bool {
         self.material
             .scatter(ray_in, record, attenuation, scattered)

@@ -1,17 +1,19 @@
 use std::sync::Arc;
 
-use crate::{colour::Colour, solid_colour::SolidColour, texture::Texture};
+use crate::util::colour::Colour;
 
-pub struct CheckerTexture {
+use super::{Solid, Texture};
+
+pub struct Checker {
     inv_scale: f64,
     even: Arc<dyn Texture>,
     odd: Arc<dyn Texture>,
 }
 
-unsafe impl Send for CheckerTexture {}
-unsafe impl Sync for CheckerTexture {}
+unsafe impl Send for Checker {}
+unsafe impl Sync for Checker {}
 
-impl CheckerTexture {
+impl Checker {
     pub fn new(scale: f64, even: Arc<dyn Texture>, odd: Arc<dyn Texture>) -> Self {
         Self {
             inv_scale: 1. / scale,
@@ -21,15 +23,11 @@ impl CheckerTexture {
     }
 
     pub fn from_colours(scale: f64, c1: &Colour, c2: &Colour) -> Self {
-        Self::new(
-            scale,
-            Arc::new(SolidColour::new(*c1)),
-            Arc::new(SolidColour::new(*c2)),
-        )
+        Self::new(scale, Arc::new(Solid::new(*c1)), Arc::new(Solid::new(*c2)))
     }
 }
 
-impl Texture for CheckerTexture {
+impl Texture for Checker {
     fn value(&self, u: f64, v: f64, p: &linalg::Point<f64, 3>) -> Colour {
         let uint = (self.inv_scale * u).floor() as i32;
         let vint = (self.inv_scale * v).floor() as i32;

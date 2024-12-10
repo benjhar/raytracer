@@ -1,3 +1,4 @@
+use linalg::vector::Vector;
 use linalg::Point;
 use rand::random;
 use rayon::prelude::*;
@@ -5,12 +6,12 @@ use std::io;
 use std::io::Write;
 use tqdm::Iter;
 
-use crate::{
-    colour::{write_colour, Colour},
-    degrees_to_radians,
+use crate::util::colour::{write_colour, Colour};
+use crate::{degrees_to_radians, util::interval::Interval};
+
+use super::{
     hittable::{HitRecord, Hittable},
     ray::Ray,
-    Interval, Vector,
 };
 
 #[derive(Default, Clone, Copy)]

@@ -1,8 +1,15 @@
 use std::{cmp::Ordering, sync::Arc};
 
 use crate::{
-    aabb::AABB, hittable::Hittable, hittable_list::HittableList, sphere::Sphere, Interval,
+    engine::{
+        hittable::{HitRecord, Hittable},
+        hittable_list::HittableList,
+        ray::Ray,
+    },
+    util::interval::Interval,
 };
+
+use super::aabb::AABB;
 
 #[derive(Clone)]
 pub struct BVHNode {
@@ -12,11 +19,7 @@ pub struct BVHNode {
 }
 
 impl BVHNode {
-    fn box_compare<O: Clone + Default + Hittable>(
-        a: &Arc<O>,
-        b: &Arc<O>,
-        axis_index: usize,
-    ) -> Ordering {
+    fn box_compare<O: Clone + Hittable>(a: &Arc<O>, b: &Arc<O>, axis_index: usize) -> Ordering {
         let a_bb = a.bounding_box();
         let a_axis_interval = a_bb.axis_interval(axis_index);
         let b_bb = b.bounding_box();
@@ -27,17 +30,17 @@ impl BVHNode {
             .unwrap()
     }
 
-    fn box_x_compare<O: Clone + Default + Hittable>(a: &Arc<O>, b: &Arc<O>) -> Ordering {
+    fn box_x_compare<O: Clone + Hittable>(a: &Arc<O>, b: &Arc<O>) -> Ordering {
         Self::box_compare(a, b, 0)
     }
-    fn box_y_compare<O: Clone + Default + Hittable>(a: &Arc<O>, b: &Arc<O>) -> Ordering {
+    fn box_y_compare<O: Clone + Hittable>(a: &Arc<O>, b: &Arc<O>) -> Ordering {
         Self::box_compare(a, b, 1)
     }
-    fn box_z_compare<O: Clone + Default + Hittable>(a: &Arc<O>, b: &Arc<O>) -> Ordering {
+    fn box_z_compare<O: Clone + Hittable>(a: &Arc<O>, b: &Arc<O>) -> Ordering {
         Self::box_compare(a, b, 2)
     }
 
-    pub fn new<O: Clone + Default + Hittable + 'static>(
+    pub fn new<O: Clone + Hittable + 'static>(
         mut objects: Vec<Arc<O>>,
         start: usize,
         end: usize,
@@ -84,19 +87,14 @@ impl BVHNode {
         Self { left, right, bbox }
     }
 
-    pub fn build<O: Clone + Default + Hittable + 'static>(list: HittableList<O>) -> Self {
+    pub fn build<O: Clone + Hittable + 'static>(list: HittableList<O>) -> Self {
         let len = list.objects.len();
         Self::new(list.objects, 0, len)
     }
 }
 
 impl Hittable for BVHNode {
-    fn hit(
-        &self,
-        ray: &crate::Ray,
-        ray_t: crate::Interval,
-        record: &mut crate::hittable::HitRecord,
-    ) -> bool {
+    fn hit(&self, ray: &Ray, ray_t: Interval, record: &mut HitRecord) -> bool {
         if !self.bbox.hit(ray, ray_t) {
             return false;
         }
@@ -118,25 +116,3 @@ impl Hittable for BVHNode {
         self.bbox
     }
 }
-
-impl Default for BVHNode {
-    fn default() -> Self {
-        Self {
-            left: Arc::new(Sphere::default()),
-            right: Arc::new(Sphere::default()),
-            bbox: AABB::default(),
-        }
-    }
-}
-
-// impl Material for BVHNode {
-//     fn scatter(
-//             &self,
-//             ray_in: &crate::Ray,
-//             record: &crate::hittable::HitRecord,
-//             attenuation: &mut crate::colour::Colour,
-//             scattered: &mut crate::Ray,
-//         ) -> bool {
-//         if self.left.hit(ray_in, ray_t, record)
-//     }
-// }

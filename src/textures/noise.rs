@@ -1,6 +1,8 @@
-use crate::{colour::Colour, perlin::Perlin, texture::Texture};
+use crate::{noise::Perlin, util::colour::Colour};
 
-pub struct NoiseTexture {
+use super::Texture;
+
+pub struct Fractal {
     noise: Perlin,
     amplitude: f64,
     scale: f64,
@@ -9,7 +11,7 @@ pub struct NoiseTexture {
     lacunarity: f64,
 }
 
-impl NoiseTexture {
+impl Fractal {
     pub fn new(
         amplitude: f64,
         scale: f64,
@@ -46,8 +48,8 @@ impl NoiseTexture {
     }
 }
 
-impl Texture for NoiseTexture {
-    fn value(&self, _: f64, _: f64, p: &linalg::Point<f64, 3>) -> crate::colour::Colour {
+impl Texture for Fractal {
+    fn value(&self, _: f64, _: f64, p: &linalg::Point<f64, 3>) -> Colour {
         Colour::new([self.amplitude; 3])
             * self.noise.noise(
                 self.scale * *p,
@@ -58,7 +60,7 @@ impl Texture for NoiseTexture {
     }
 }
 
-impl Default for NoiseTexture {
+impl Default for Fractal {
     fn default() -> Self {
         Self::new(1., 1., 2, 0.5, 2.)
     }

@@ -1,4 +1,6 @@
-use crate::{Interval, Vector};
+use linalg::vector::Vector;
+
+use super::interval::Interval;
 
 const INTENSITY: Interval = Interval::new(0.000, 0.999);
 pub type Colour = Vector<f64, 3>;

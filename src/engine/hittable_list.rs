@@ -1,12 +1,13 @@
 use std::sync::Arc;
 
-use crate::{
-    aabb::AABB,
+use crate::{bounding_volume_hierarchies::aabb::AABB, util::interval::Interval};
+
+use super::{
     hittable::{HitRecord, Hittable},
-    Interval,
+    ray::Ray,
 };
 
-#[derive(Default, Clone)]
+#[derive(Clone, Default)]
 pub struct HittableList<O: Clone + Hittable> {
     pub objects: Vec<Arc<O>>,
     bbox: AABB,
@@ -37,13 +38,8 @@ impl<O: Clone + Hittable> HittableList<O> {
     }
 }
 
-impl<O: Clone + Default + Hittable> Hittable for HittableList<O> {
-    fn hit(
-        &self,
-        ray: &crate::ray::Ray,
-        ray_t: Interval,
-        record: &mut crate::hittable::HitRecord,
-    ) -> bool {
+impl<O: Clone + Hittable> Hittable for HittableList<O> {
+    fn hit(&self, ray: &Ray, ray_t: Interval, record: &mut HitRecord) -> bool {
         let mut temp_rec = HitRecord::default();
         let mut hit_anything = false;
         let mut closest_so_far = ray_t.max;

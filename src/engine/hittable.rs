@@ -1,9 +1,14 @@
 use std::sync::Arc;
 
-use crate::{
-    aabb::AABB, colour::Colour, lambertian::Lambertian, material::Material, ray::Ray, Interval,
-};
 use linalg::{vector::Vector, Point};
+
+use crate::{
+    bounding_volume_hierarchies::aabb::AABB,
+    materials::{Lambertian, Material},
+    util::{colour::Colour, interval::Interval},
+};
+
+use super::ray::Ray;
 
 #[derive(Clone)]
 pub struct HitRecord {
@@ -47,14 +52,4 @@ pub trait Hittable: Send + Sync {
     fn hit(&self, ray: &Ray, ray_t: Interval, record: &mut HitRecord) -> bool;
 
     fn bounding_box(&self) -> AABB;
-}
-
-impl Hittable for &dyn Hittable {
-    fn hit(&self, ray: &Ray, ray_t: Interval, record: &mut HitRecord) -> bool {
-        (*self).hit(ray, ray_t, record)
-    }
-
-    fn bounding_box(&self) -> AABB {
-        (*self).bounding_box()
-    }
 }

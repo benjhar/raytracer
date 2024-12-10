@@ -1,7 +1,12 @@
 use linalg::vector::Vector;
 use rand::random;
 
-use crate::{colour::Colour, material::Material, Ray};
+use crate::{
+    engine::{hittable::HitRecord, ray::Ray},
+    util::colour::Colour,
+};
+
+use super::Material;
 
 pub struct Dielectric {
     refractive_index: f64,
@@ -23,10 +28,10 @@ impl Dielectric {
 impl Material for Dielectric {
     fn scatter(
         &self,
-        ray_in: &crate::Ray,
-        record: &crate::hittable::HitRecord,
-        attenuation: &mut crate::colour::Colour,
-        scattered: &mut crate::Ray,
+        ray_in: &Ray,
+        record: &HitRecord,
+        attenuation: &mut Colour,
+        scattered: &mut Ray,
     ) -> bool {
         *attenuation = Colour::new([1.0, 1.0, 1.0]);
         let ri = if record.front_face {

@@ -2,13 +2,15 @@ use std::f64;
 
 use image::{ImageError, Rgba};
 
-use crate::{colour::Colour, rtw_image::RtwImage, texture::Texture};
+use crate::util::{colour::Colour, rtw_image::RtwImage};
 
-pub struct ImageTexture {
+use super::Texture;
+
+pub struct Image {
     image: RtwImage,
 }
 
-impl ImageTexture {
+impl Image {
     pub fn try_file(filename: impl ToString) -> Result<Self, ImageError> {
         Ok(Self {
             image: RtwImage::load(filename)?,
@@ -16,8 +18,8 @@ impl ImageTexture {
     }
 }
 
-impl Texture for ImageTexture {
-    fn value(&self, u: f64, v: f64, _: &linalg::Point<f64, 3>) -> crate::colour::Colour {
+impl Texture for Image {
+    fn value(&self, u: f64, v: f64, _: &linalg::Point<f64, 3>) -> Colour {
         let u = u.clamp(0., 1.);
         let v = 1. - v.clamp(0., 1.);
 

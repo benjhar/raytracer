@@ -3,9 +3,12 @@ use std::sync::Arc;
 use linalg::vector::Vector;
 
 use crate::{
-    colour::Colour, hittable::HitRecord, material::Material, solid_colour::SolidColour,
-    texture::Texture, Ray,
+    engine::{hittable::HitRecord, ray::Ray},
+    textures::{Solid, Texture},
+    util::colour::Colour,
 };
+
+use super::Material;
 
 #[derive(Clone)]
 pub struct Lambertian {
@@ -22,7 +25,7 @@ impl Lambertian {
 
     pub fn from_colour(colour: Colour) -> Self {
         Self {
-            texture: Arc::new(SolidColour::new(colour)),
+            texture: Arc::new(Solid::new(colour)),
         }
     }
 }
