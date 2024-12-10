@@ -181,7 +181,7 @@ fn earth(file: File) {
 fn perlin_spheres(file: File) {
     let mut world = HittableList::new();
 
-    let pertext = Arc::new(NoiseTexture::with_seed(0, 4.));
+    let pertext = Arc::new(NoiseTexture::with_seed(0, 1., 4., 7, 0.5, 2.));
     let permat = Arc::new(Lambertian::new(pertext));
     world.add(Arc::new(Sphere::new(
         Point::new([0., -1000., 0.]),

@@ -33,7 +33,7 @@ impl Perlin {
         }
     }
 
-    pub fn noise(&self, p: Point<f64, 3>) -> f64 {
+    fn value(&self, p: Point<f64, 3>) -> f64 {
         let p_floor = p.map(f64::floor);
         let offset_vector = p - p_floor;
         let [i, j, k] = p_floor.map(|a| a as i64).to_array();
@@ -53,6 +53,20 @@ impl Perlin {
         }
 
         Self::perlin_interp(c, offset_vector)
+    }
+
+    pub fn noise(&self, p: Point<f64, 3>, octaves: usize, roughness: f64, lacunarity: f64) -> f64 {
+        let mut acc = 0.;
+        let mut temp_p = p;
+        let mut weight = 1.;
+
+        for _ in 0..octaves {
+            acc += weight * self.value(temp_p);
+            weight *= roughness;
+            temp_p = lacunarity * temp_p;
+        }
+
+        acc.abs()
     }
 
     fn permute(mut p: [u32; POINT_COUNT], rng: &mut StdRng) -> [u32; POINT_COUNT] {
