@@ -1,0 +1,54 @@
+use linalg::Point;
+use raytracer::{
+    camera::Camera, checker_texture::CheckerTexture, colour::Colour, hittable_list::HittableList,
+    lambertian::Lambertian, sphere::Sphere, Vector,
+};
+use std::{fs::OpenOptions, sync::Arc};
+
+fn main() {
+    let file = OpenOptions::new()
+        .create(true)
+        .truncate(true)
+        .write(true)
+        .open("checkered_spheres.ppm")
+        .unwrap();
+    let mut world = HittableList::default();
+
+    let checker = Arc::new(CheckerTexture::from_colours(
+        0.01,
+        &Colour::new([0.2, 0.3, 0.1]),
+        &Colour::new([0.9, 0.9, 0.9]),
+    ));
+
+    let sphere_mat = Arc::new(Lambertian::new(checker.clone()));
+
+    world.add(Arc::new(Sphere::new(
+        Point::new([0., -10., 0.]),
+        None,
+        10.,
+        sphere_mat.clone(),
+    )));
+    world.add(Arc::new(Sphere::new(
+        Point::new([0., 10., 0.]),
+        None,
+        10.,
+        sphere_mat,
+    )));
+
+    let mut cam = Camera::default();
+
+    cam.aspect_ratio = 16.0 / 9.0;
+    cam.width = 400;
+    cam.samples_per_pixel = 100;
+    cam.max_depth = 50;
+
+    cam.vfov = 20.;
+    cam.lookfrom = Point::new([13., 2., 3.]);
+    cam.lookat = Point::new([0., 0., 0.]);
+    cam.vup = Vector::new([0., 1., 0.]);
+
+    cam.defocus_angle = 0.;
+    cam.focus_dist = 10.;
+
+    cam.render(file, world);
+}

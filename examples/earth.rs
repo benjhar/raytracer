@@ -1,0 +1,36 @@
+use linalg::Point;
+use raytracer::{
+    camera::Camera, hittable_list::HittableList, image_texture::ImageTexture,
+    lambertian::Lambertian, sphere::Sphere, Vector,
+};
+use std::{fs::OpenOptions, sync::Arc};
+
+fn main() {
+    let file = OpenOptions::new()
+        .create(true)
+        .truncate(true)
+        .write(true)
+        .open("earth.ppm")
+        .unwrap();
+
+    let earth_texture = Arc::new(ImageTexture::try_file("./assets/earthmap.jpg").unwrap());
+    let earth_surface = Arc::new(Lambertian::new(earth_texture));
+    let globe = Arc::new(Sphere::new(Point::new([0.; 3]), None, 2., earth_surface));
+
+    let mut cam = Camera::default();
+
+    cam.aspect_ratio = 16.0 / 9.0;
+    cam.width = 400;
+    cam.samples_per_pixel = 100;
+    cam.max_depth = 50;
+
+    cam.vfov = 20.;
+    cam.lookfrom = Point::new([8.485, 8.485, 0.]);
+    cam.lookat = Point::new([0.; 3]);
+    cam.vup = Vector::new([0., 1., 0.]);
+
+    cam.defocus_angle = 0.0;
+    cam.focus_dist = 10.0;
+
+    cam.render(file, HittableList::from_object(globe));
+}

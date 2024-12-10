@@ -17,3 +17,19 @@ strip = false
 debug = true
 codegen-units = 1
 lto = "fat"
+
+[[example]]
+name = "bouncing_spheres"
+path = "./examples/bouncing_spheres.rs"
+
+[[example]]
+name = "checkered_spheres"
+path = "./examples/checkered_spheres.rs"
+
+[[example]]
+name = "earth"
+path = "./examples/earth.rs"
+
+[[example]]
+name = "perlin_spheres"
+path = "./examples/perlin_spheres.rs"

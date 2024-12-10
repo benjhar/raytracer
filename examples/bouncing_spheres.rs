@@ -2,14 +2,10 @@ use linalg::Point;
 use rand::{Rng, SeedableRng};
 use raytracer::{
     bvh::BVHNode, camera::Camera, checker_texture::CheckerTexture, colour::Colour,
-    dielectric::Dielectric, hittable_list::HittableList, image_texture::ImageTexture,
-    lambertian::Lambertian, metals::Metal, noise_texture::NoiseTexture, sphere::Sphere, Vector,
+    dielectric::Dielectric, hittable_list::HittableList, lambertian::Lambertian, metals::Metal,
+    sphere::Sphere, Vector,
 };
-use std::{
-    env,
-    fs::{File, OpenOptions},
-    sync::Arc,
-};
+use std::{fs::OpenOptions, sync::Arc};
 
 fn setup_camera() -> Camera {
     let mut camera = Camera::default();
@@ -30,11 +26,17 @@ fn setup_camera() -> Camera {
     camera
 }
 
-fn bouncing_spheres(file: File) {
+fn main() {
+    let file = OpenOptions::new()
+        .create(true)
+        .truncate(true)
+        .write(true)
+        .open("bouncing_spheres.ppm")
+        .unwrap();
     let mut world = HittableList::default();
 
     let material_ground = Arc::new(Lambertian::new(Arc::new(CheckerTexture::from_colours(
-        0.32,
+        0.02,
         &Colour::new([0.2, 0.3, 0.1]),
         &Colour::new([0.9; 3]),
     ))));
@@ -111,124 +113,4 @@ fn bouncing_spheres(file: File) {
     let mut camera = setup_camera();
 
     camera.render(file, world);
-}
-
-fn checkered_spheres(file: File) {
-    let mut world = HittableList::default();
-
-    let checker = Arc::new(CheckerTexture::from_colours(
-        0.01,
-        &Colour::new([0.2, 0.3, 0.1]),
-        &Colour::new([0.9, 0.9, 0.9]),
-    ));
-
-    let sphere_mat = Arc::new(Lambertian::new(checker.clone()));
-
-    world.add(Arc::new(Sphere::new(
-        Point::new([0., -10., 0.]),
-        None,
-        10.,
-        sphere_mat.clone(),
-    )));
-    world.add(Arc::new(Sphere::new(
-        Point::new([0., 10., 0.]),
-        None,
-        10.,
-        sphere_mat,
-    )));
-
-    let mut cam = Camera::default();
-
-    cam.aspect_ratio = 16.0 / 9.0;
-    cam.width = 400;
-    cam.samples_per_pixel = 100;
-    cam.max_depth = 50;
-
-    cam.vfov = 20.;
-    cam.lookfrom = Point::new([13., 2., 3.]);
-    cam.lookat = Point::new([0., 0., 0.]);
-    cam.vup = Vector::new([0., 1., 0.]);
-
-    cam.defocus_angle = 0.;
-    cam.focus_dist = 10.;
-
-    cam.render(file, world);
-}
-
-fn earth(file: File) {
-    let earth_texture = Arc::new(ImageTexture::try_file("./assets/earthmap.jpg").unwrap());
-    let earth_surface = Arc::new(Lambertian::new(earth_texture));
-    let globe = Arc::new(Sphere::new(Point::new([0.; 3]), None, 2., earth_surface));
-
-    let mut cam = Camera::default();
-
-    cam.aspect_ratio = 16.0 / 9.0;
-    cam.width = 400;
-    cam.samples_per_pixel = 100;
-    cam.max_depth = 50;
-
-    cam.vfov = 20.;
-    cam.lookfrom = Point::new([8.485, 8.485, 0.]);
-    cam.lookat = Point::new([0.; 3]);
-    cam.vup = Vector::new([0., 1., 0.]);
-
-    cam.defocus_angle = 0.0;
-    cam.focus_dist = 10.0;
-
-    cam.render(file, HittableList::from_object(globe));
-}
-
-fn perlin_spheres(file: File) {
-    let mut world = HittableList::new();
-
-    let pertext = Arc::new(NoiseTexture::with_seed(0, 1., 4., 7, 0.5, 2.));
-    let permat = Arc::new(Lambertian::new(pertext));
-    world.add(Arc::new(Sphere::new(
-        Point::new([0., -1000., 0.]),
-        None,
-        1000.,
-        permat.clone(),
-    )));
-    world.add(Arc::new(Sphere::new(
-        Point::new([0., 2., 0.]),
-        None,
-        2.,
-        permat.clone(),
-    )));
-
-    let mut cam = Camera::default();
-
-    cam.aspect_ratio = 16.0 / 9.0;
-    cam.width = 400;
-    cam.samples_per_pixel = 100;
-    cam.max_depth = 50;
-
-    cam.vfov = 20.;
-    cam.lookfrom = Point::new([13., 2., 3.]);
-    cam.vup = Vector::new([0., 1., 0.]);
-
-    cam.defocus_angle = 0.;
-    cam.focus_dist = 10.;
-
-    cam.render(file, world);
-}
-
-fn main() {
-    let args: Vec<String> = env::args().collect();
-
-    let file = OpenOptions::new()
-        .create(true)
-        .truncate(true)
-        .write(true)
-        .open(args[1].clone())
-        .unwrap();
-
-    let scene = args[2].parse().unwrap();
-
-    match scene {
-        1 => checkered_spheres(file),
-        2 => earth(file),
-        3 => perlin_spheres(file),
-        _ => bouncing_spheres(file),
-    };
 }

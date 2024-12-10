@@ -1,0 +1,48 @@
+use linalg::Point;
+use raytracer::{
+    camera::Camera, hittable_list::HittableList, lambertian::Lambertian,
+    noise_texture::NoiseTexture, sphere::Sphere, Vector,
+};
+use std::{fs::OpenOptions, sync::Arc};
+
+fn main() {
+    let file = OpenOptions::new()
+        .create(true)
+        .truncate(true)
+        .write(true)
+        .open("perlin_spheres.ppm")
+        .unwrap();
+
+    let mut world = HittableList::new();
+
+    let pertext = Arc::new(NoiseTexture::with_seed(0, 1., 4., 7, 0.5, 2.));
+    let permat = Arc::new(Lambertian::new(pertext));
+    world.add(Arc::new(Sphere::new(
+        Point::new([0., -1000., 0.]),
+        None,
+        1000.,
+        permat.clone(),
+    )));
+    world.add(Arc::new(Sphere::new(
+        Point::new([0., 2., 0.]),
+        None,
+        2.,
+        permat.clone(),
+    )));
+
+    let mut cam = Camera::default();
+
+    cam.aspect_ratio = 16.0 / 9.0;
+    cam.width = 400;
+    cam.samples_per_pixel = 100;
+    cam.max_depth = 50;
+
+    cam.vfov = 20.;
+    cam.lookfrom = Point::new([13., 2., 3.]);
+    cam.vup = Vector::new([0., 1., 0.]);
+
+    cam.defocus_angle = 0.;
+    cam.focus_dist = 10.;
+
+    cam.render(file, world);
+}
