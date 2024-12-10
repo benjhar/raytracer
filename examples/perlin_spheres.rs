@@ -1,7 +1,9 @@
-use linalg::Point;
+use linalg::{vector::Vector, Point};
 use raytracer::{
-    camera::Camera, hittable_list::HittableList, lambertian::Lambertian,
-    noise_texture::NoiseTexture, sphere::Sphere, Vector,
+    engine::{camera::Camera, hittable_list::HittableList},
+    materials::Lambertian,
+    surface::Sphere,
+    textures::Fractal,
 };
 use std::{fs::OpenOptions, sync::Arc};
 
@@ -15,7 +17,7 @@ fn main() {
 
     let mut world = HittableList::new();
 
-    let pertext = Arc::new(NoiseTexture::with_seed(0, 1., 4., 7, 0.5, 2.));
+    let pertext = Arc::new(Fractal::with_seed(0, 1., 4., 7, 0.5, 2.));
     let permat = Arc::new(Lambertian::new(pertext));
     world.add(Arc::new(Sphere::new(
         Point::new([0., -1000., 0.]),

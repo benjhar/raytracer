@@ -1,7 +1,10 @@
-use linalg::Point;
+use linalg::{vector::Vector, Point};
 use raytracer::{
-    camera::Camera, checker_texture::CheckerTexture, colour::Colour, hittable_list::HittableList,
-    lambertian::Lambertian, sphere::Sphere, Vector,
+    engine::{camera::Camera, hittable_list::HittableList},
+    materials::Lambertian,
+    surface::Sphere,
+    textures::Checker,
+    util::colour::Colour,
 };
 use std::{fs::OpenOptions, sync::Arc};
 
@@ -14,7 +17,7 @@ fn main() {
         .unwrap();
     let mut world = HittableList::default();
 
-    let checker = Arc::new(CheckerTexture::from_colours(
+    let checker = Arc::new(Checker::from_colours(
         0.01,
         &Colour::new([0.2, 0.3, 0.1]),
         &Colour::new([0.9, 0.9, 0.9]),

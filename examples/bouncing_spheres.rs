@@ -1,9 +1,12 @@
-use linalg::Point;
+use linalg::{vector::Vector, Point};
 use rand::{Rng, SeedableRng};
 use raytracer::{
-    bvh::BVHNode, camera::Camera, checker_texture::CheckerTexture, colour::Colour,
-    dielectric::Dielectric, hittable_list::HittableList, lambertian::Lambertian, metals::Metal,
-    sphere::Sphere, Vector,
+    bounding_volume_hierarchies::bvh::BVHNode,
+    engine::{camera::Camera, hittable_list::HittableList},
+    materials::{Dielectric, Lambertian, Metal},
+    surface::Sphere,
+    textures::Checker,
+    util::colour::Colour,
 };
 use std::{fs::OpenOptions, sync::Arc};
 
@@ -33,9 +36,9 @@ fn main() {
         .write(true)
         .open("bouncing_spheres.ppm")
         .unwrap();
-    let mut world = HittableList::default();
+    let mut world = HittableList::new();
 
-    let material_ground = Arc::new(Lambertian::new(Arc::new(CheckerTexture::from_colours(
+    let material_ground = Arc::new(Lambertian::new(Arc::new(Checker::from_colours(
         0.02,
         &Colour::new([0.2, 0.3, 0.1]),
         &Colour::new([0.9; 3]),

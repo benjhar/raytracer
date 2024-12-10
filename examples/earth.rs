@@ -1,7 +1,9 @@
-use linalg::Point;
+use linalg::{vector::Vector, Point};
 use raytracer::{
-    camera::Camera, hittable_list::HittableList, image_texture::ImageTexture,
-    lambertian::Lambertian, sphere::Sphere, Vector,
+    engine::{camera::Camera, hittable_list::HittableList},
+    materials::Lambertian,
+    surface::Sphere,
+    textures::Image,
 };
 use std::{fs::OpenOptions, sync::Arc};
 
@@ -13,7 +15,7 @@ fn main() {
         .open("earth.ppm")
         .unwrap();
 
-    let earth_texture = Arc::new(ImageTexture::try_file("./assets/earthmap.jpg").unwrap());
+    let earth_texture = Arc::new(Image::try_file("./assets/earthmap.jpg").unwrap());
     let earth_surface = Arc::new(Lambertian::new(earth_texture));
     let globe = Arc::new(Sphere::new(Point::new([0.; 3]), None, 2., earth_surface));
 
