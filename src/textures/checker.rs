@@ -23,7 +23,11 @@ impl Checker {
     }
 
     pub fn from_colours(scale: f64, c1: &Colour, c2: &Colour) -> Self {
-        Self::new(scale, Arc::new(Solid::new(*c1)), Arc::new(Solid::new(*c2)))
+        Self::new(
+            scale,
+            Arc::new(Solid::from_colour(*c1)),
+            Arc::new(Solid::from_colour(*c2)),
+        )
     }
 }
 

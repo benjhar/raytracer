@@ -33,3 +33,7 @@ path = "./examples/earth.rs"
 [[example]]
 name = "perlin_spheres"
 path = "./examples/perlin_spheres.rs"
+
+[[example]]
+name = "roughness_map"
+path = "./examples/roughness_map.rs"

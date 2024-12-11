@@ -1,24 +1,29 @@
+use std::sync::Arc;
+
 use linalg::vector::Vector;
 
 use crate::{
     engine::{hittable::HitRecord, ray::Ray},
+    textures::Texture,
     util::colour::Colour,
 };
 
 use super::Material;
 
-#[derive(Clone, Copy, Default, Debug)]
+#[derive(Clone)]
 pub struct Metal {
     albedo: Colour,
-    fuzz: f64,
+    roughness: Arc<dyn Texture>,
 }
 
 impl Metal {
-    pub fn new(albedo: Colour, fuzz: f64) -> Self {
-        let fuzz = fuzz.clamp(0.0, 1.0);
-        Self { albedo, fuzz }
+    pub fn new(albedo: Colour, roughness: Arc<dyn Texture>) -> Self {
+        Self { albedo, roughness }
     }
 }
+
+unsafe impl Send for Metal {}
+unsafe impl Sync for Metal {}
 
 impl Material for Metal {
     fn scatter(
@@ -29,7 +34,8 @@ impl Material for Metal {
         scattered: &mut Ray,
     ) -> bool {
         let mut reflected = Vector::reflect(ray_in.direction().unit(), record.normal);
-        reflected = reflected.unit() + (self.fuzz * Vector::random_unit_vector());
+        reflected = reflected.unit()
+            + (self.roughness.value(record.u, record.v, &record.p) * Vector::random_unit_vector());
 
         *scattered = Ray::new(record.p, reflected, Some(ray_in.time()));
         *attenuation = self.albedo;

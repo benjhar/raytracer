@@ -25,7 +25,7 @@ impl Lambertian {
 
     pub fn from_colour(colour: Colour) -> Self {
         Self {
-            texture: Arc::new(Solid::new(colour)),
+            texture: Arc::new(Solid::from_colour(colour)),
         }
     }
 }

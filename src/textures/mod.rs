@@ -1,10 +1,12 @@
 mod checker;
 mod image;
+mod invert;
 mod noise;
 mod solid;
 
 pub use checker::Checker;
 pub use image::Image;
+pub use invert::Invert;
 pub use noise::Fractal;
 pub use solid::Solid;
 

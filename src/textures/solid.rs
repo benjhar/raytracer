@@ -9,7 +9,13 @@ pub struct Solid {
 }
 
 impl Solid {
-    pub fn new(albedo: Colour) -> Self {
+    pub fn new(r: f64, g: f64, b: f64) -> Self {
+        Self {
+            albedo: Colour::new([r, g, b]),
+        }
+    }
+
+    pub fn from_colour(albedo: Colour) -> Self {
         Self { albedo }
     }
 }

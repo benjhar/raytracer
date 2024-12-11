@@ -1,8 +1,11 @@
+use std::sync::Arc;
+
 use linalg::vector::Vector;
 use rand::random;
 
 use crate::{
     engine::{hittable::HitRecord, ray::Ray},
+    textures::Texture,
     util::colour::Colour,
 };
 
@@ -10,11 +13,18 @@ use super::Material;
 
 pub struct Dielectric {
     refractive_index: f64,
+    roughness: Arc<dyn Texture>,
 }
 
+unsafe impl Send for Dielectric {}
+unsafe impl Sync for Dielectric {}
+
 impl Dielectric {
-    pub fn new(refractive_index: f64) -> Self {
-        Self { refractive_index }
+    pub fn new(refractive_index: f64, roughness: Arc<dyn Texture>) -> Self {
+        Self {
+            refractive_index,
+            roughness,
+        }
     }
 
     fn reflectance(cosine: f64, refractive_index: f64) -> f64 {
@@ -48,7 +58,9 @@ impl Material for Dielectric {
         let cannot_refract = ri * sin_theta > 1.0;
 
         let direction = if cannot_refract || Self::reflectance(cos_theta, ri) > random::<f64>() {
-            Vector::reflect(unit_direction, record.normal)
+            Vector::reflect(unit_direction, record.normal).unit()
+                + (self.roughness.value(record.u, record.v, &record.p)
+                    * Vector::random_unit_vector())
         } else {
             Vector::refract(&unit_direction, &record.normal, ri)
         };
