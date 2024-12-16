@@ -5,7 +5,7 @@ use raytracer::{
     engine::{camera::Camera, hittable_list::HittableList},
     materials::{Dielectric, Lambertian, Metal},
     surface::Sphere,
-    textures::Checker,
+    textures::{Checker, Solid},
     util::colour::Colour,
 };
 use std::{fs::OpenOptions, sync::Arc};
@@ -38,11 +38,9 @@ fn main() {
         .unwrap();
     let mut world = HittableList::new();
 
-    let material_ground = Arc::new(Lambertian::new(Arc::new(Checker::from_colours(
-        0.02,
-        &Colour::new([0.2, 0.3, 0.1]),
-        &Colour::new([0.9; 3]),
-    ))));
+    let material_ground = Arc::new(Lambertian::new(Arc::new(Solid::from_colour(Colour::new(
+        [0.9; 3],
+    )))));
     world.add(Arc::new(Sphere::new(
         Point::new([0., -1000., 0.]),
         None,
@@ -51,6 +49,8 @@ fn main() {
     )));
 
     let mut rng = rand::rngs::StdRng::seed_from_u64(0);
+
+    let smooth_texture = Arc::new(Solid::new(0., 0., 0.));
 
     for a in -11..11 {
         for b in -11..11 {
@@ -76,20 +76,31 @@ fn main() {
                         rng.gen_range(0.5..=1.),
                     ]);
                     let fuzz = rng.gen::<f64>() * 0.5;
-                    let mat = Arc::new(Metal::new(albedo, fuzz));
+                    let mat = Arc::new(Metal::new(albedo, Arc::new(Solid::new(fuzz, fuzz, fuzz))));
                     world.add(Arc::new(Sphere::new(centre, None, 0.2, mat)));
                 } else {
                     // glass
-                    let mat = Arc::new(Dielectric::new(1.5));
+                    let mat = Arc::new(Dielectric::new(
+                        Colour::new([0., 0., 0.]),
+                        1.5,
+                        smooth_texture.clone(),
+                    ));
                     world.add(Arc::new(Sphere::new(centre, None, 0.2, mat)));
                 }
             }
         }
     }
 
-    let material1 = Arc::new(Dielectric::new(1.5));
+    let material1 = Arc::new(Dielectric::new(
+        Colour::new([1.0, 0.7, 0.83]),
+        1.5,
+        smooth_texture.clone(),
+    ));
     let material2 = Arc::new(Lambertian::from_colour(Colour::new([0.4, 0.2, 0.1])));
-    let material3 = Arc::new(Metal::new(Colour::new([0.7, 0.6, 0.5]), 0.));
+    let material3 = Arc::new(Metal::new(
+        Colour::new([0.7, 0.6, 0.5]),
+        smooth_texture.clone(),
+    ));
     world.add(Arc::new(Sphere::new(
         Point::new([0., 1., 0.]),
         None,

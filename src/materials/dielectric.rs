@@ -12,6 +12,7 @@ use crate::{
 use super::Material;
 
 pub struct Dielectric {
+    colour: Colour,
     refractive_index: f64,
     roughness: Arc<dyn Texture>,
 }
@@ -20,8 +21,9 @@ unsafe impl Send for Dielectric {}
 unsafe impl Sync for Dielectric {}
 
 impl Dielectric {
-    pub fn new(refractive_index: f64, roughness: Arc<dyn Texture>) -> Self {
+    pub fn new(colour: Colour, refractive_index: f64, roughness: Arc<dyn Texture>) -> Self {
         Self {
+            colour,
             refractive_index,
             roughness,
         }
@@ -43,7 +45,7 @@ impl Material for Dielectric {
         attenuation: &mut Colour,
         scattered: &mut Ray,
     ) -> bool {
-        *attenuation = Colour::new([1.0, 1.0, 1.0]);
+        *attenuation = self.colour;
         let ri = if record.front_face {
             1.0 / self.refractive_index
         } else {
