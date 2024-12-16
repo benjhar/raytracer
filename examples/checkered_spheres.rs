@@ -6,15 +6,9 @@ use raytracer::{
     textures::Checker,
     util::colour::Colour,
 };
-use std::{fs::OpenOptions, sync::Arc};
+use std::sync::Arc;
 
-fn main() {
-    let file = OpenOptions::new()
-        .create(true)
-        .truncate(true)
-        .write(true)
-        .open("checkered_spheres.ppm")
-        .unwrap();
+fn main() -> Result<(), image::ImageError> {
     let mut world = HittableList::default();
 
     let checker = Arc::new(Checker::from_colours(
@@ -53,5 +47,5 @@ fn main() {
     cam.defocus_angle = 0.;
     cam.focus_dist = 10.;
 
-    cam.render(file, world);
+    cam.render("checkered_spheres.png", world)
 }

@@ -1,9 +1,9 @@
+use image::ImageBuffer;
 use linalg::vector::Vector;
 use linalg::Point;
 use rand::random;
 use rayon::prelude::*;
-use std::io;
-use std::io::Write;
+use std::path::Path;
 use tqdm::Iter;
 
 use crate::util::colour::{write_colour, Colour};
@@ -39,15 +39,14 @@ pub struct Camera {
 }
 
 impl Camera {
-    pub fn render(&mut self, mut file: impl Write, world: impl Hittable + Clone + 'static) {
+    pub fn render(
+        &mut self,
+        #[allow(clippy::needless_pass_by_value)] filename: impl AsRef<Path>,
+        world: impl Hittable + Clone + 'static,
+    ) -> Result<(), image::ImageError> {
         self.initialise();
 
-        let mut data = String::new();
-
-        // For logging
-        let mut stderr = io::stderr();
-
-        let _ = file.write_fmt(format_args!("P3\n{} {}\n255\n", self.width, self.height));
+        let mut imgbuf = ImageBuffer::new(self.width, self.height);
 
         let height = self.height;
         let width = self.width;
@@ -65,13 +64,13 @@ impl Camera {
                     .collect::<Vec<Colour>>()
                     .iter()
                     .fold(Colour::zero(), |acc, c| acc + *c);
-                write_colour(&mut data, pixel_colour, samples_per_pixel);
+
+                let pixel = imgbuf.get_pixel_mut(i, j);
+                *pixel = write_colour(pixel_colour, samples_per_pixel);
             }
         }
 
-        file.write_all(data.as_bytes())
-            .expect("Could not write to file");
-        let _ = stderr.write(b"\rDone.                  \n");
+        imgbuf.save(filename)
     }
 
     fn initialise(&mut self) {

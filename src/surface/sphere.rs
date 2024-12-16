@@ -9,7 +9,6 @@ use crate::{
         ray::Ray,
     },
     materials::{Lambertian, Material},
-    textures::Solid,
     util::{colour::Colour, interval::Interval},
 };
 

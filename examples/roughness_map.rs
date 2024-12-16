@@ -1,4 +1,4 @@
-use std::{fs::OpenOptions, sync::Arc};
+use std::sync::Arc;
 
 use linalg::{vector::Vector, Point};
 use raytracer::{
@@ -9,14 +9,7 @@ use raytracer::{
     util::colour::Colour,
 };
 
-fn main() {
-    let file = OpenOptions::new()
-        .create(true)
-        .truncate(true)
-        .write(true)
-        .open("roughness_map.ppm")
-        .unwrap();
-
+fn main() -> Result<(), image::ImageError> {
     let mut world = HittableList::new();
 
     let material_ground = Arc::new(Lambertian::new(Arc::new(Solid::new(0.9, 0.9, 0.9))));
@@ -34,7 +27,7 @@ fn main() {
     ));
 
     let glass_roughness_map = Arc::new(Fractal::new(0.7, 6., 9, 0.5, 2.0));
-    let glass_mat = Arc::new(Dielectric::new(1.5, glass_roughness_map));
+    let glass_mat = Arc::new(Dielectric::new(Colour::one(), 1.5, glass_roughness_map));
 
     let sphere1 = Arc::new(Sphere::new(Point::new([-2., 2., 0.]), None, 2., gold_mat));
 
@@ -70,8 +63,8 @@ fn main() {
     let mut cam = Camera::default();
 
     cam.aspect_ratio = 16.0 / 9.0;
-    cam.width = 1920;
-    cam.samples_per_pixel = 1000;
+    cam.width = 400;
+    cam.samples_per_pixel = 500;
     cam.max_depth = 50;
 
     cam.vfov = 40.;
@@ -82,5 +75,5 @@ fn main() {
     cam.defocus_angle = 0.;
     cam.focus_dist = 2.;
 
-    cam.render(file, world);
+    cam.render("roughness_map.png", world)
 }

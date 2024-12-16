@@ -5,10 +5,10 @@ use raytracer::{
     engine::{camera::Camera, hittable_list::HittableList},
     materials::{Dielectric, Lambertian, Metal},
     surface::Sphere,
-    textures::{Checker, Solid},
+    textures::Solid,
     util::colour::Colour,
 };
-use std::{fs::OpenOptions, sync::Arc};
+use std::sync::Arc;
 
 fn setup_camera() -> Camera {
     let mut camera = Camera::default();
@@ -29,13 +29,7 @@ fn setup_camera() -> Camera {
     camera
 }
 
-fn main() {
-    let file = OpenOptions::new()
-        .create(true)
-        .truncate(true)
-        .write(true)
-        .open("bouncing_spheres.ppm")
-        .unwrap();
+fn main() -> Result<(), image::ImageError> {
     let mut world = HittableList::new();
 
     let material_ground = Arc::new(Lambertian::new(Arc::new(Solid::from_colour(Colour::new(
@@ -126,5 +120,5 @@ fn main() {
 
     let mut camera = setup_camera();
 
-    camera.render(file, world);
+    camera.render("bouncing_spheres.png", world)
 }

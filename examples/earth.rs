@@ -5,16 +5,9 @@ use raytracer::{
     surface::Sphere,
     textures::Image,
 };
-use std::{fs::OpenOptions, sync::Arc};
+use std::sync::Arc;
 
-fn main() {
-    let file = OpenOptions::new()
-        .create(true)
-        .truncate(true)
-        .write(true)
-        .open("earth.ppm")
-        .unwrap();
-
+fn main() -> Result<(), image::ImageError> {
     let earth_texture = Arc::new(Image::try_file("./assets/earthmap.jpg").unwrap());
     let earth_surface = Arc::new(Lambertian::new(earth_texture));
     let globe = Arc::new(Sphere::new(Point::new([0.; 3]), None, 2., earth_surface));
@@ -34,5 +27,5 @@ fn main() {
     cam.defocus_angle = 0.0;
     cam.focus_dist = 10.0;
 
-    cam.render(file, HittableList::from_object(globe));
+    cam.render("earth.png", HittableList::from_object(globe))
 }

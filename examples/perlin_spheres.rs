@@ -5,16 +5,9 @@ use raytracer::{
     surface::Sphere,
     textures::Fractal,
 };
-use std::{fs::OpenOptions, sync::Arc};
+use std::sync::Arc;
 
-fn main() {
-    let file = OpenOptions::new()
-        .create(true)
-        .truncate(true)
-        .write(true)
-        .open("perlin_spheres.ppm")
-        .unwrap();
-
+fn main() -> Result<(), image::ImageError> {
     let mut world = HittableList::new();
 
     let pertext = Arc::new(Fractal::with_seed(0, 1., 4., 7, 0.5, 2.));
@@ -46,5 +39,5 @@ fn main() {
     cam.defocus_angle = 0.;
     cam.focus_dist = 10.;
 
-    cam.render(file, world);
+    cam.render("perlin_spheres.png", world)
 }
