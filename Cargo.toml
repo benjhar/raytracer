@@ -1,39 +1,13 @@
-[package]
-name = "raytracer"
-version = "0.1.0"
-edition = "2021"
-
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
-
-[dependencies]
-image = "0.25.5"
-linalg = {path = "../linalg/", features=["random", "geometry", "hadamard", "physics"]}
-rand = "0.8.5"
-rayon = "1.10.0"
-tqdm = "0.7.0"
+[workspace]
+members = ["raytracer", "examples/*"]
+resolver = "2"
 
 [profile.release]
-strip = false
-debug = true
 codegen-units = 1
 lto = "fat"
 
-[[example]]
-name = "bouncing_spheres"
-path = "./examples/bouncing_spheres.rs"
-
-[[example]]
-name = "checkered_spheres"
-path = "./examples/checkered_spheres.rs"
-
-[[example]]
-name = "earth"
-path = "./examples/earth.rs"
-
-[[example]]
-name = "perlin_spheres"
-path = "./examples/perlin_spheres.rs"
-
-[[example]]
-name = "roughness_map"
-path = "./examples/roughness_map.rs"
+[profile.dev.package."*"]
+opt-level = 3
+strip = false
+debug = true
+codegen-units = 1

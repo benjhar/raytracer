@@ -1,0 +1,9 @@
+[package]
+name = "perlin_spheres"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+raytracer = { path="../../raytracer/" }
+linalg = { git="https://github.com/benjhar/linalg.git" }
+image = "0.25.5"

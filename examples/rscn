@@ -1,0 +1,11 @@
+pertext = Fractal.with_seed(0, 1, 4, 7, 0.5, 2)
+permat = Lambertian(pertext)
+
+sphere1 = Sphere(Point(0,-1000,0), 1000, permat)
+sphere2 = Sphere(Point(0,2,0), 2, permat)
+
+world = HittableList(sphere1, sphere2)
+
+cam = Camera(aspect_ratio=16/9,width=400,samples_per_pixel=100,max_depth=50,vfov=20,lookfrom=Point(13,2.3), vup=Vector(0,1,0), defocus_angle=0, focus_dist=10)
+
+render(cam, "perlin_spheres.png", world)
