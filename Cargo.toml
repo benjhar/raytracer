@@ -1,8 +1,9 @@
 [workspace]
-members = ["raytracer", "examples/*"]
+members = ["raytracer", "examples/*", "scene_editor"]
 resolver = "2"
 
 [profile.release]
+strip = "symbols"
 codegen-units = 1
 lto = "fat"
 
@@ -11,3 +12,8 @@ opt-level = 3
 strip = false
 debug = true
 codegen-units = 1
+
+[profile.benchmarking]
+inherits = "release"
+strip = false
+debug = true

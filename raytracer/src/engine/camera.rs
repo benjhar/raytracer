@@ -48,27 +48,22 @@ impl Camera {
 
         let mut imgbuf = ImageBuffer::new(self.width, self.height);
 
-        let height = self.height;
-        let width = self.width;
         let samples_per_pixel = self.samples_per_pixel;
         let max_depth = self.max_depth;
 
-        for j in (0..height).tqdm() {
-            for i in 0..width {
-                let pixel_colour: Colour = (0..samples_per_pixel)
-                    .into_par_iter()
-                    .map(|_| {
-                        let ray = self.get_ray(i, j);
-                        Self::ray_colour(ray, max_depth, &world)
-                    })
-                    .collect::<Vec<Colour>>()
-                    .iter()
-                    .fold(Colour::zero(), |acc, c| acc + *c);
+        imgbuf.par_enumerate_pixels_mut().for_each(|(i, j, pixel)| {
+            let pixel_colour: Colour = (0..samples_per_pixel)
+                // .into_par_iter()
+                .map(|_| {
+                    let ray = self.get_ray(i, j);
+                    Self::ray_colour(ray, max_depth, &world)
+                })
+                // .collect::<Vec<Colour>>()
+                // .iter()
+                .fold(Colour::zero(), |acc, c| acc + c);
 
-                let pixel = imgbuf.get_pixel_mut(i, j);
-                *pixel = write_colour(pixel_colour, samples_per_pixel);
-            }
-        }
+            *pixel = write_colour(pixel_colour, samples_per_pixel);
+        });
 
         imgbuf.save(filename)
     }
