@@ -8,12 +8,12 @@ use super::{
 };
 
 #[derive(Clone, Default)]
-pub struct HittableList<O: Clone + Hittable> {
-    pub objects: Vec<Arc<O>>,
+pub struct HittableList {
+    pub objects: Vec<Arc<dyn Hittable>>,
     bbox: AABB,
 }
 
-impl<O: Clone + Hittable> HittableList<O> {
+impl HittableList {
     pub fn new() -> Self {
         Self {
             objects: Vec::new(),
@@ -21,7 +21,7 @@ impl<O: Clone + Hittable> HittableList<O> {
         }
     }
 
-    pub fn from_object(object: Arc<O>) -> Self {
+    pub fn from_object(object: Arc<dyn Hittable>) -> Self {
         Self {
             objects: vec![object.clone()],
             bbox: object.bounding_box(),
@@ -32,13 +32,13 @@ impl<O: Clone + Hittable> HittableList<O> {
         self.objects.clear();
     }
 
-    pub fn add(&mut self, object: Arc<O>) {
+    pub fn add(&mut self, object: Arc<dyn Hittable>) {
         self.objects.push(object.clone());
         self.bbox = AABB::enclosing(self.bbox, object.bounding_box());
     }
 }
 
-impl<O: Clone + Hittable> Hittable for HittableList<O> {
+impl Hittable for HittableList {
     fn hit(&self, ray: &Ray, ray_t: Interval, record: &mut HitRecord) -> bool {
         let mut temp_rec = HitRecord::default();
         let mut hit_anything = false;

@@ -19,7 +19,7 @@ pub struct BVHNode {
 }
 
 impl BVHNode {
-    fn box_compare<O: Clone + Hittable>(a: &Arc<O>, b: &Arc<O>, axis_index: usize) -> Ordering {
+    fn box_compare(a: &Arc<dyn Hittable>, b: &Arc<dyn Hittable>, axis_index: usize) -> Ordering {
         let a_bb = a.bounding_box();
         let a_axis_interval = a_bb.axis_interval(axis_index);
         let b_bb = b.bounding_box();
@@ -30,21 +30,17 @@ impl BVHNode {
             .unwrap()
     }
 
-    fn box_x_compare<O: Clone + Hittable>(a: &Arc<O>, b: &Arc<O>) -> Ordering {
+    fn box_x_compare(a: &Arc<dyn Hittable>, b: &Arc<dyn Hittable>) -> Ordering {
         Self::box_compare(a, b, 0)
     }
-    fn box_y_compare<O: Clone + Hittable>(a: &Arc<O>, b: &Arc<O>) -> Ordering {
+    fn box_y_compare(a: &Arc<dyn Hittable>, b: &Arc<dyn Hittable>) -> Ordering {
         Self::box_compare(a, b, 1)
     }
-    fn box_z_compare<O: Clone + Hittable>(a: &Arc<O>, b: &Arc<O>) -> Ordering {
+    fn box_z_compare(a: &Arc<dyn Hittable>, b: &Arc<dyn Hittable>) -> Ordering {
         Self::box_compare(a, b, 2)
     }
 
-    pub fn new<O: Clone + Hittable + 'static>(
-        mut objects: Vec<Arc<O>>,
-        start: usize,
-        end: usize,
-    ) -> Self {
+    pub fn new(mut objects: Vec<Arc<dyn Hittable>>, start: usize, end: usize) -> Self {
         let mut bbox = AABB::empty();
         for object in &objects {
             bbox = AABB::enclosing(bbox, object.bounding_box());
@@ -87,7 +83,7 @@ impl BVHNode {
         Self { left, right, bbox }
     }
 
-    pub fn build<O: Clone + Hittable + 'static>(list: HittableList<O>) -> Self {
+    pub fn build(list: HittableList) -> Self {
         let len = list.objects.len();
         Self::new(list.objects, 0, len)
     }
