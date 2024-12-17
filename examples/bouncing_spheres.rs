@@ -37,7 +37,6 @@ fn main() -> Result<(), image::ImageError> {
     )))));
     world.add(Arc::new(Sphere::new(
         Point::new([0., -1000., 0.]),
-        None,
         1000.,
         material_ground,
     )));
@@ -61,7 +60,7 @@ fn main() -> Result<(), image::ImageError> {
                     let albedo = Vector::new([rng.gen(), rng.gen(), rng.gen()]);
                     let mat = Arc::new(Lambertian::from_colour(albedo));
                     let centre2 = centre + Vector::new([0., rng.gen::<f64>() * 0.5, 0.]);
-                    world.add(Arc::new(Sphere::new(centre, Some(centre2), 0.2, mat)));
+                    world.add(Arc::new(Sphere::moving(centre, centre2, 0.2, mat)));
                 } else if choose_mat < 0.95 {
                     // metal
                     let albedo = Vector::new([
@@ -71,7 +70,7 @@ fn main() -> Result<(), image::ImageError> {
                     ]);
                     let fuzz = rng.gen::<f64>() * 0.5;
                     let mat = Arc::new(Metal::new(albedo, Arc::new(Solid::new(fuzz, fuzz, fuzz))));
-                    world.add(Arc::new(Sphere::new(centre, None, 0.2, mat)));
+                    world.add(Arc::new(Sphere::new(centre, 0.2, mat)));
                 } else {
                     // glass
                     let mat = Arc::new(Dielectric::new(
@@ -79,7 +78,7 @@ fn main() -> Result<(), image::ImageError> {
                         1.5,
                         smooth_texture.clone(),
                     ));
-                    world.add(Arc::new(Sphere::new(centre, None, 0.2, mat)));
+                    world.add(Arc::new(Sphere::new(centre, 0.2, mat)));
                 }
             }
         }
@@ -97,21 +96,18 @@ fn main() -> Result<(), image::ImageError> {
     ));
     world.add(Arc::new(Sphere::new(
         Point::new([0., 1., 0.]),
-        None,
         1.0,
         material1,
     )));
 
     world.add(Arc::new(Sphere::new(
         Point::new([-4., 1., 0.]),
-        None,
         1.0,
         material2.clone(),
     )));
 
     world.add(Arc::new(Sphere::new(
         Point::new([4., 1., 0.]),
-        None,
         1.,
         material3,
     )));

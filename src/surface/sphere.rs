@@ -24,35 +24,35 @@ unsafe impl Send for Sphere {}
 unsafe impl Sync for Sphere {}
 
 impl Sphere {
-    pub fn new(
+    pub fn new(centre: Point<f64, 3>, radius: f64, material: Arc<dyn Material>) -> Self {
+        let rvec = Vector::new([radius; 3]);
+        let bbox = AABB::build(centre - rvec, centre + rvec);
+        Self {
+            centre: Ray::new(centre, Vector::new([0., 0., 0.]), None),
+            radius,
+            material,
+            bbox,
+        }
+    }
+
+    pub fn moving(
         centre: Point<f64, 3>,
-        centre2: Option<Point<f64, 3>>,
+        centre2: Point<f64, 3>,
         radius: f64,
         material: Arc<dyn Material>,
     ) -> Self {
-        if let Some(c2) = centre2 {
-            let centre = Ray::new(centre, c2 - centre, None);
+        let centre = Ray::new(centre, centre2 - centre, None);
 
-            let rvec = Vector::new([radius; 3]);
-            let box1 = AABB::build(centre.at(0.) - rvec, centre.at(0.) + rvec);
-            let box2 = AABB::build(centre.at(1.) - rvec, centre.at(1.) + rvec);
-            let bbox = AABB::enclosing(box1, box2);
+        let rvec = Vector::new([radius; 3]);
+        let box1 = AABB::build(centre.at(0.) - rvec, centre.at(0.) + rvec);
+        let box2 = AABB::build(centre.at(1.) - rvec, centre.at(1.) + rvec);
+        let bbox = AABB::enclosing(box1, box2);
 
-            Self {
-                centre,
-                radius,
-                material,
-                bbox,
-            }
-        } else {
-            let rvec = Vector::new([radius; 3]);
-            let bbox = AABB::build(centre - rvec, centre + rvec);
-            Self {
-                centre: Ray::new(centre, Vector::new([0., 0., 0.]), None),
-                radius,
-                material,
-                bbox,
-            }
+        Self {
+            centre,
+            radius,
+            material,
+            bbox,
         }
     }
 

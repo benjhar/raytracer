@@ -21,13 +21,11 @@ fn main() -> Result<(), image::ImageError> {
 
     world.add(Arc::new(Sphere::new(
         Point::new([0., -10., 0.]),
-        None,
         10.,
         sphere_mat.clone(),
     )));
     world.add(Arc::new(Sphere::new(
         Point::new([0., 10., 0.]),
-        None,
         10.,
         sphere_mat,
     )));

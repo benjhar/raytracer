@@ -10,7 +10,7 @@ use std::sync::Arc;
 fn main() -> Result<(), image::ImageError> {
     let earth_texture = Arc::new(Image::try_file("./assets/earthmap.jpg").unwrap());
     let earth_surface = Arc::new(Lambertian::new(earth_texture));
-    let globe = Arc::new(Sphere::new(Point::new([0.; 3]), None, 2., earth_surface));
+    let globe = Arc::new(Sphere::new(Point::new([0.; 3]), 2., earth_surface));
 
     let mut cam = Camera::default();
 

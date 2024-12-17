@@ -14,13 +14,11 @@ fn main() -> Result<(), image::ImageError> {
     let permat = Arc::new(Lambertian::new(pertext));
     world.add(Arc::new(Sphere::new(
         Point::new([0., -1000., 0.]),
-        None,
         1000.,
         permat.clone(),
     )));
     world.add(Arc::new(Sphere::new(
         Point::new([0., 2., 0.]),
-        None,
         2.,
         permat.clone(),
     )));

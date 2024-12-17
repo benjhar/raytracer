@@ -15,7 +15,6 @@ fn main() -> Result<(), image::ImageError> {
     let material_ground = Arc::new(Lambertian::new(Arc::new(Solid::new(0.9, 0.9, 0.9))));
     world.add(Arc::new(Sphere::new(
         Point::new([0., -1000., 0.]),
-        None,
         1000.,
         material_ground.clone(),
     )));
@@ -29,34 +28,23 @@ fn main() -> Result<(), image::ImageError> {
     let glass_roughness_map = Arc::new(Fractal::new(0.7, 6., 9, 0.5, 2.0));
     let glass_mat = Arc::new(Dielectric::new(Colour::one(), 1.5, glass_roughness_map));
 
-    let sphere1 = Arc::new(Sphere::new(Point::new([-2., 2., 0.]), None, 2., gold_mat));
+    let sphere1 = Arc::new(Sphere::new(Point::new([-2., 2., 0.]), 2., gold_mat));
 
     world.add(sphere1);
 
-    let sphere2 = Arc::new(Sphere::new(
-        Point::new([3., 1.5, -1.]),
-        None,
-        1.5,
-        glass_mat,
-    ));
+    let sphere2 = Arc::new(Sphere::new(Point::new([3., 1.5, -1.]), 1.5, glass_mat));
 
     world.add(sphere2);
 
     let sphere3 = Arc::new(Sphere::new(
         Point::new([0., 1., 4.5]),
-        None,
         1.,
         material_ground.clone(),
     ));
 
     world.add(sphere3);
 
-    let sphere4 = Arc::new(Sphere::new(
-        Point::new([2., 1., -5.]),
-        None,
-        1.,
-        material_ground,
-    ));
+    let sphere4 = Arc::new(Sphere::new(Point::new([2., 1., -5.]), 1., material_ground));
 
     world.add(sphere4);
 
