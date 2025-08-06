@@ -11,7 +11,9 @@ pub struct AABB {
 
 impl AABB {
     pub const fn new(x: Interval, y: Interval, z: Interval) -> Self {
-        Self { x, y, z }
+        let mut aabb = Self { x, y, z };
+        aabb.pad_to_minimum();
+        aabb
     }
 
     /// Treat the two points a and b as extrema for the bounding box, so we don't require a
@@ -35,7 +37,9 @@ impl AABB {
             Interval::new(b.z(), a.z())
         };
 
-        Self { x, y, z }
+        let mut aabb = Self { x, y, z };
+        aabb.pad_to_minimum();
+        aabb
     }
 
     pub fn enclosing(box0: AABB, box1: AABB) -> Self {
@@ -114,6 +118,20 @@ impl AABB {
             1
         } else {
             2
+        }
+    }
+
+    /// Adjust the AABB so that no side is narrower than some delta, padding if necessary.
+    const fn pad_to_minimum(&mut self) {
+        let delta: f64 = 0.0001;
+        if self.x.size() < delta {
+            self.x.expand(delta);
+        }
+        if self.y.size() < delta {
+            self.y.expand(delta);
+        }
+        if self.z.size() < delta {
+            self.z.expand(delta);
         }
     }
 }

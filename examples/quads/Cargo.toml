@@ -1,0 +1,9 @@
+[package]
+name = "quads"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+image = "0.25.5"
+raytracer = { path="../../raytracer/" }
+linalg = { git="https://github.com/benjhar/linalg.git" }

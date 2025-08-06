@@ -34,7 +34,7 @@ impl Interval {
         x
     }
 
-    pub fn expand(&self, delta: f64) -> Interval {
+    pub const fn expand(&self, delta: f64) -> Interval {
         let padding = delta / 2.;
         let mut new = *self;
         new.min -= padding;
@@ -42,7 +42,7 @@ impl Interval {
         new
     }
 
-    pub fn size(&self) -> f64 {
+    pub const fn size(&self) -> f64 {
         (self.max - self.min).abs()
     }
 

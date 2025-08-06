@@ -830,6 +830,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "quads"
+version = "0.1.0"
+dependencies = [
+ "image",
+ "linalg",
+ "raytracer",
+]
+
+[[package]]
 name = "quick-error"
 version = "2.0.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
