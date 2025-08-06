@@ -47,8 +47,6 @@ impl BVHNode {
         }
 
         let axis = bbox.longest_axis();
-        // let mut rng = rand::thread_rng();
-        // let axis = rng.gen_range(0..=2);
 
         let comparator = match axis {
             0 => Self::box_x_compare,
