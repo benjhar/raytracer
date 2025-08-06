@@ -25,6 +25,7 @@ fn setup_camera() -> Camera {
 
     camera.defocus_angle = 0.6;
     camera.focus_dist = 10.;
+    camera.background = Colour::new([0.7, 0.8, 1.0]);
 
     camera
 }

@@ -1,3 +1,7 @@
+use std::ops::Add;
+
+use linalg::vector::Vector;
+
 #[derive(Clone, Copy)]
 pub struct Interval {
     pub min: f64,
@@ -64,5 +68,13 @@ impl Interval {
 impl Default for Interval {
     fn default() -> Self {
         Self::empty()
+    }
+}
+
+impl Add<f64> for Interval {
+    type Output = Interval;
+
+    fn add(self, rhs: f64) -> Self::Output {
+        Interval::new(self.min + rhs, self.max + rhs)
     }
 }

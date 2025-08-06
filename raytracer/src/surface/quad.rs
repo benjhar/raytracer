@@ -1,7 +1,9 @@
 use std::sync::Arc;
 
 use crate::{
-    bounding_volume_hierarchies::aabb::AABB, engine::hittable, materials::Material,
+    bounding_volume_hierarchies::aabb::AABB,
+    engine::{hittable, hittable_list::HittableList},
+    materials::Material,
     util::interval::Interval,
 };
 use linalg::{vector::Vector, Point};
@@ -58,7 +60,7 @@ impl Quad {
 
         record.u = a;
         record.v = b;
-        return true;
+        true
     }
 }
 
@@ -102,4 +104,58 @@ impl hittable::Hittable for Quad {
 
         true
     }
+}
+
+pub fn r#box(
+    a: &Point<f64, 3>,
+    b: &Point<f64, 3>,
+    material: Arc<dyn Material>,
+) -> Arc<HittableList> {
+    let mut sides = HittableList::new();
+
+    let min = Point::new([a.x().min(b.x()), a.y().min(b.y()), a.z().min(b.z())]);
+    let max = Point::new([a.x().max(b.x()), a.y().max(b.y()), a.z().max(b.z())]);
+
+    let dx = Vector::new([max.x() - min.x(), 0., 0.]);
+    let dy = Vector::new([0., max.y() - min.y(), 0.]);
+    let dz = Vector::new([0., 0., max.z() - min.z()]);
+
+    sides.add(Arc::new(Quad::new(
+        Point::new([min.x(), min.y(), max.z()]),
+        dx,
+        dy,
+        material.clone(),
+    )));
+    sides.add(Arc::new(Quad::new(
+        Point::new([max.x(), min.y(), max.z()]),
+        -dz,
+        dy,
+        material.clone(),
+    )));
+    sides.add(Arc::new(Quad::new(
+        Point::new([max.x(), min.y(), min.z()]),
+        -dx,
+        dy,
+        material.clone(),
+    )));
+    sides.add(Arc::new(Quad::new(
+        Point::new([min.x(), min.y(), min.z()]),
+        dz,
+        dy,
+        material.clone(),
+    )));
+    sides.add(Arc::new(Quad::new(
+        Point::new([min.x(), max.y(), max.z()]),
+        dx,
+        -dz,
+        material.clone(),
+    )));
+    sides.add(Arc::new(Quad::new(
+        Point::new([min.x(), min.y(), min.z()]),
+        dx,
+        dz,
+        material,
+    )));
+
+    Arc::new(sides)
 }

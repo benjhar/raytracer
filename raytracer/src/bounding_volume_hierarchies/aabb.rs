@@ -1,4 +1,6 @@
-use linalg::Point;
+use std::ops::Add;
+
+use linalg::{vector::Vector, Point};
 
 use crate::{engine::ray::Ray, util::interval::Interval};
 
@@ -133,5 +135,12 @@ impl AABB {
         if self.z.size() < delta {
             self.z.expand(delta);
         }
+    }
+}
+
+impl Add<Vector<f64, 3>> for AABB {
+    type Output = AABB;
+    fn add(self, rhs: Vector<f64, 3>) -> Self::Output {
+        AABB::new(self.x + rhs.x(), self.y + rhs.y(), self.z + rhs.z())
     }
 }

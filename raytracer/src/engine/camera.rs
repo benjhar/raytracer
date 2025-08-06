@@ -4,7 +4,6 @@ use linalg::Point;
 use rand::random;
 use rayon::prelude::*;
 use std::path::Path;
-use tqdm::Iter;
 
 use crate::util::colour::{write_colour, Colour};
 use crate::{degrees_to_radians, util::interval::Interval};
@@ -26,6 +25,7 @@ pub struct Camera {
     pub vup: Vector<f64, 3>,
     pub defocus_angle: f64,
     pub focus_dist: f64,
+    pub background: Colour,
     height: u32,
     centre: Point<f64, 3>,
     pixel_delta_v: Vector<f64, 3>,
@@ -56,7 +56,7 @@ impl Camera {
                 // .into_par_iter()
                 .map(|_| {
                     let ray = self.get_ray(i, j);
-                    Self::ray_colour(ray, max_depth, &world)
+                    self.ray_colour(ray, max_depth, &world)
                 })
                 // .collect::<Vec<Colour>>()
                 // .iter()
@@ -106,32 +106,32 @@ impl Camera {
         self.defocus_disk_v = self.v * defocus_radius;
     }
 
-    fn ray_colour(ray: Ray, depth: u32, world: &dyn Hittable) -> Colour {
+    fn ray_colour(&self, ray: Ray, depth: u32, world: &dyn Hittable) -> Colour {
         if depth == 0 {
             return Colour::new([0., 0., 0.]);
         }
 
         let mut record = HitRecord::default();
         // 0.001 is used rather than zero to prevent shadow acne
-        if world.hit(&ray, Interval::new(0.001, f64::INFINITY), &mut record) {
-            let mut attenuation = Colour::new([1., 1., 1.]);
-            let mut scattered = Ray::default();
-            if record
-                .material
-                .scatter(&ray, &record, &mut attenuation, &mut scattered)
-            {
-                let col_pt_2 = Camera::ray_colour(scattered, depth - 1, world);
-                let col = attenuation.hadamard(col_pt_2);
-
-                return col;
-            }
-            return Colour::new([0., 0., 0.]);
+        if !world.hit(&ray, Interval::new(0.001, f64::INFINITY), &mut record) {
+            return self.background;
         }
 
-        let unit_direction = ray.direction().unit();
-        let a = (unit_direction.y() + 1.0) * 0.5;
+        let mut scattered: Ray = Ray::default();
+        let mut attenuation: Colour = Colour::one();
+        let colour_from_emission = record.material.emitted(record.u, record.v, &record.p);
 
-        Colour::new([1.0, 1.0, 1.0]) * (1.0 - a) + Colour::new([0.5, 0.7, 1.0]) * a
+        if !record
+            .material
+            .scatter(&ray, &record, &mut attenuation, &mut scattered)
+        {
+            return colour_from_emission;
+        }
+
+        let col_pt_2 = self.ray_colour(scattered, depth - 1, world);
+        let colour_from_scatter = attenuation.hadamard(col_pt_2);
+
+        colour_from_emission + colour_from_scatter
     }
 
     // Get a randomly sampled camera ray for te pixel at location i,j

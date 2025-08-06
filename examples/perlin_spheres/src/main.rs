@@ -4,6 +4,7 @@ use raytracer::{
     materials::Lambertian,
     surface::Sphere,
     textures::Fractal,
+    util::colour::Colour,
 };
 use std::sync::Arc;
 
@@ -36,6 +37,7 @@ fn main() -> Result<(), image::ImageError> {
 
     cam.defocus_angle = 0.;
     cam.focus_dist = 10.;
+    cam.background = Colour::new([0.7, 0.8, 1.0]);
 
     cam.render("perlin_spheres.png", world)
 }

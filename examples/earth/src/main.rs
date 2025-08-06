@@ -4,6 +4,7 @@ use raytracer::{
     materials::Lambertian,
     surface::Sphere,
     textures::Image,
+    util::colour::Colour,
 };
 use std::sync::Arc;
 
@@ -26,6 +27,7 @@ fn main() -> Result<(), image::ImageError> {
 
     cam.defocus_angle = 0.0;
     cam.focus_dist = 10.0;
+    cam.background = Colour::new([0.7, 0.8, 1.0]);
 
     cam.render("earth.png", HittableList::from_object(globe))
 }

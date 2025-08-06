@@ -3,12 +3,20 @@ use crate::{
     util::colour::Colour,
 };
 
+use linalg::Point;
+
 pub trait Material {
+    fn emitted(&self, u: f64, v: f64, point: &Point<f64, 3>) -> Colour {
+        Colour::zero()
+    }
+
     fn scatter(
         &self,
         ray_in: &Ray,
         record: &HitRecord,
         attenuation: &mut Colour,
         scattered: &mut Ray,
-    ) -> bool;
+    ) -> bool {
+        false
+    }
 }

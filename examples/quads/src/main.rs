@@ -62,6 +62,7 @@ pub fn main() -> Result<(), image::ImageError> {
 
     cam.defocus_angle = 0.;
     cam.focus_dist = 2.;
+    cam.background = Colour::new([0.7, 0.8, 1.0]);
 
     cam.render("quads.png", world)
 }
