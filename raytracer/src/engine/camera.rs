@@ -26,6 +26,9 @@ pub struct Camera {
     pub defocus_angle: f64,
     pub focus_dist: f64,
     pub background: Colour,
+    pixel_samples_scale: f64,
+    sqrt_spp: u32,
+    recip_sqrt_spp: f64,
     height: u32,
     centre: Point<f64, 3>,
     pixel_delta_v: Vector<f64, 3>,
@@ -48,21 +51,18 @@ impl Camera {
 
         let mut imgbuf = ImageBuffer::new(self.width, self.height);
 
-        let samples_per_pixel = self.samples_per_pixel;
         let max_depth = self.max_depth;
 
         imgbuf.par_enumerate_pixels_mut().for_each(|(i, j, pixel)| {
-            let pixel_colour: Colour = (0..samples_per_pixel)
-                // .into_par_iter()
-                .map(|_| {
-                    let ray = self.get_ray(i, j);
-                    self.ray_colour(ray, max_depth, &world)
-                })
-                // .collect::<Vec<Colour>>()
-                // .iter()
-                .fold(Colour::zero(), |acc, c| acc + c);
+            let mut pixel_colour = Colour::zero();
+            for s_i in 0..self.sqrt_spp {
+                for s_j in 0..self.sqrt_spp {
+                    let ray = self.get_ray(i, j, s_i, s_j);
+                    pixel_colour = pixel_colour + self.ray_colour(ray, max_depth, &world);
+                }
+            }
 
-            *pixel = write_colour(pixel_colour, samples_per_pixel);
+            *pixel = write_colour(self.pixel_samples_scale * pixel_colour);
         });
 
         imgbuf.save(filename)
@@ -74,6 +74,10 @@ impl Camera {
         if self.height < 1 {
             self.height = 1;
         }
+
+        self.sqrt_spp = f64::from(self.samples_per_pixel).sqrt() as u32;
+        self.pixel_samples_scale = 1.0 / f64::from(self.sqrt_spp * self.sqrt_spp);
+        self.recip_sqrt_spp = 1.0 / f64::from(self.sqrt_spp);
 
         self.centre = self.lookfrom;
 
@@ -135,13 +139,14 @@ impl Camera {
     }
 
     // Get a randomly sampled camera ray for te pixel at location i,j
-    fn get_ray(&self, i: u32, j: u32) -> Ray {
+    fn get_ray(&self, i: u32, j: u32, s_i: u32, s_j: u32) -> Ray {
         // Constructs a camera ray originating from the defocus disk and directed at a randomly
         // sampled point around the pixel location i, j.
 
-        let pixel_centre =
-            self.pixel00_loc + (self.pixel_delta_u * i as f64) + (self.pixel_delta_v * j as f64);
-        let pixel_sample = pixel_centre + self.pixel_sample_square();
+        let offset = self.sample_square_stratified(s_i, s_j);
+        let pixel_sample = self.pixel00_loc
+            + ((f64::from(i) + offset.x()) * self.pixel_delta_u)
+            + ((f64::from(j) + offset.y()) * self.pixel_delta_v);
 
         let ray_origin = if self.defocus_angle <= 0. {
             self.centre
@@ -152,6 +157,15 @@ impl Camera {
         let ray_time = random::<f64>();
 
         Ray::new(ray_origin, ray_direction, Some(ray_time))
+    }
+
+    /// Returns the vector to a random point in the square sub-pixel specified by grid indices
+    /// `s_i` and `s_j`, for an idealized unit square pixel [-.5,-.5] to [+.5,+.5]
+    fn sample_square_stratified(&self, s_i: u32, s_j: u32) -> Vector<f64, 3> {
+        let px = ((f64::from(s_i) + random::<f64>()) * self.recip_sqrt_spp) - 0.5;
+        let py = ((f64::from(s_j) + random::<f64>()) * self.recip_sqrt_spp) - 0.5;
+
+        Vector::new([px, py, 0.])
     }
 
     /// Returns a random point in the square surrounding a pixel at the origin

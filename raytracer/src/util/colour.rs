@@ -13,8 +13,7 @@ fn linear_to_gamma(linear_component: f64) -> f64 {
     0.0
 }
 
-pub fn write_colour(pixel_colour: Colour, samples_per_pixel: u32) -> Rgb<u8> {
-    let pixel_colour = pixel_colour * (1. / samples_per_pixel as f64);
+pub fn write_colour(pixel_colour: Colour) -> Rgb<u8> {
     let mut r = pixel_colour.x();
     let mut g = pixel_colour.y();
     let mut b = pixel_colour.z();
