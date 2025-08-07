@@ -5,7 +5,7 @@ use crate::{
 
 use linalg::Point;
 
-pub trait Material {
+pub trait Material: Send + Sync {
     fn emitted(&self, u: f64, v: f64, point: &Point<f64, 3>) -> Colour {
         Colour::zero()
     }

@@ -204,6 +204,16 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "3d7b894f5411737b7867f4827955924d7c254fc9f4d91a6aad6b097804b1018b"
 
 [[package]]
+name = "combined"
+version = "0.1.0"
+dependencies = [
+ "image",
+ "linalg",
+ "rand",
+ "raytracer",
+]
+
+[[package]]
 name = "cornell_box"
 version = "0.1.0"
 dependencies = [
@@ -400,6 +410,15 @@ checksum = "4a3d7db9596fecd151c5f638c0ee5d5bd487b6e0ea232e5dc96d5250f6f94b1d"
 dependencies = [
  "crc32fast",
  "miniz_oxide",
+]
+
+[[package]]
+name = "foggy_cornell"
+version = "0.1.0"
+dependencies = [
+ "image",
+ "linalg",
+ "raytracer",
 ]
 
 [[package]]

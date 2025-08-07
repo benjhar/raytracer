@@ -1,11 +1,13 @@
 use std::sync::Arc;
 
 use linalg::{vector::Vector, Point};
+use rand::random;
 
 use crate::{
     bounding_volume_hierarchies::aabb::AABB,
     degrees_to_radians,
-    materials::{Lambertian, Material},
+    materials::{Isotropic, Lambertian, Material},
+    textures::Texture,
     util::{colour::Colour, interval::Interval},
 };
 
@@ -174,10 +176,95 @@ impl Hittable for RotateY {
             (-self.sin_theta * record.normal.x()) + (self.cos_theta * record.normal.z()),
         ]);
 
-        return true;
+        true
     }
 
     fn bounding_box(&self) -> AABB {
         self.bbox
+    }
+}
+
+pub struct ConstantMedium {
+    boundary: Arc<dyn Hittable>,
+    neg_inv_density: f64,
+    phase_function: Arc<dyn Material>,
+}
+
+impl ConstantMedium {
+    pub fn new(boundary: Arc<dyn Hittable>, density: f64, texture: Arc<dyn Texture>) -> Self {
+        let phase_function = Arc::new(Isotropic::new(texture));
+        let neg_inv_density = -1. / density;
+
+        Self {
+            boundary,
+            neg_inv_density,
+            phase_function,
+        }
+    }
+
+    pub fn from_colour(boundary: Arc<dyn Hittable>, density: f64, colour: Colour) -> Self {
+        let phase_function = Arc::new(Isotropic::from_colour(colour));
+        let neg_inv_density = -1. / density;
+
+        Self {
+            boundary,
+            neg_inv_density,
+            phase_function,
+        }
+    }
+}
+
+impl Hittable for ConstantMedium {
+    fn hit(&self, ray: &Ray, ray_t: Interval, record: &mut HitRecord) -> bool {
+        let mut rec1 = HitRecord::default();
+        let mut rec2 = HitRecord::default();
+
+        if !self.boundary.hit(ray, Interval::universe(), &mut rec1) {
+            return false;
+        }
+
+        if !self.boundary.hit(
+            ray,
+            Interval::new(rec1.distance + 0.0001, f64::INFINITY),
+            &mut rec2,
+        ) {
+            return false;
+        }
+
+        if rec1.distance < ray_t.min {
+            rec1.distance = ray_t.min;
+        }
+        if rec2.distance > ray_t.max {
+            rec1.distance = ray_t.max;
+        }
+
+        if rec1.distance >= rec2.distance {
+            return false;
+        }
+
+        if rec1.distance < 0. {
+            rec1.distance = 0.;
+        }
+
+        let ray_length = ray.direction().length();
+        let distance_inside_boundary = (rec2.distance - rec1.distance) * ray_length;
+        let hit_distance = self.neg_inv_density * random::<f64>().log10();
+
+        if hit_distance > distance_inside_boundary {
+            return false;
+        }
+
+        record.distance = rec1.distance + hit_distance / ray_length;
+        record.p = ray.at(record.distance);
+
+        record.normal = Vector::new([1., 0., 0.]); // Arbitrary
+        record.front_face = true; // also arbitrary
+        record.material = self.phase_function.clone();
+
+        true
+    }
+
+    fn bounding_box(&self) -> AABB {
+        self.boundary.bounding_box()
     }
 }
