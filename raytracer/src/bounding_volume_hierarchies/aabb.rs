@@ -127,13 +127,13 @@ impl AABB {
     const fn pad_to_minimum(&mut self) {
         let delta: f64 = 0.0001;
         if self.x.size() < delta {
-            self.x.expand(delta);
+            self.x = self.x.expand(delta);
         }
         if self.y.size() < delta {
-            self.y.expand(delta);
+            self.y = self.y.expand(delta);
         }
         if self.z.size() < delta {
-            self.z.expand(delta);
+            self.z = self.z.expand(delta);
         }
     }
 }
