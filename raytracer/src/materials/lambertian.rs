@@ -15,14 +15,15 @@ pub struct Lambertian {
     texture: Arc<dyn Texture>,
 }
 
-unsafe impl Send for Lambertian {}
 unsafe impl Sync for Lambertian {}
 
 impl Lambertian {
+    #[must_use]
     pub fn new(texture: Arc<dyn Texture>) -> Self {
         Self { texture }
     }
 
+    #[must_use]
     pub fn from_colour(colour: Colour) -> Self {
         Self {
             texture: Arc::new(Solid::from_colour(colour)),
@@ -38,6 +39,7 @@ impl Material for Lambertian {
         attenuation: &mut Colour,
         scattered: &mut Ray,
     ) -> bool {
+        #[expect(clippy::arithmetic_side_effects, reason = "Floats")]
         let mut scatter_direction = record.normal + Vector::random_unit_vector();
 
         if scatter_direction.near_zero() {

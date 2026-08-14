@@ -18,6 +18,8 @@ pub struct BVHNode {
     bbox: AABB,
 }
 
+unsafe impl Sync for BVHNode {}
+
 impl BVHNode {
     fn box_compare(a: &Arc<dyn Hittable>, b: &Arc<dyn Hittable>, axis_index: usize) -> Ordering {
         let a_bb = a.bounding_box();
@@ -27,7 +29,7 @@ impl BVHNode {
         a_axis_interval
             .min
             .partial_cmp(&b_axis_interval.min)
-            .unwrap()
+            .unwrap_or(Ordering::Equal)
     }
 
     fn box_x_compare(a: &Arc<dyn Hittable>, b: &Arc<dyn Hittable>) -> Ordering {
@@ -40,9 +42,9 @@ impl BVHNode {
         Self::box_compare(a, b, 2)
     }
 
-    pub fn new(mut objects: Vec<Arc<dyn Hittable>>, start: usize, end: usize) -> Self {
+    pub fn new(objects: &mut [Arc<dyn Hittable>]) -> Self {
         let mut bbox = AABB::empty();
-        for object in &objects {
+        for object in &*objects {
             bbox = AABB::enclosing(bbox, object.bounding_box());
         }
 
@@ -54,26 +56,23 @@ impl BVHNode {
             _ => Self::box_z_compare,
         };
 
-        let object_span = end - start;
+        let object_span = objects.len();
 
-        let (left, right) = if object_span == 1 {
-            (
-                objects[start].clone() as Arc<dyn Hittable>,
-                objects[start].clone() as Arc<dyn Hittable>,
-            )
-        } else if object_span == 2 {
-            (
-                objects[start].clone() as Arc<dyn Hittable>,
-                objects[start + 1].clone() as Arc<dyn Hittable>,
-            )
+        let (left, right) = if let [obj] = objects {
+            (obj.clone(), obj.clone())
+        } else if let [obj1, obj2] = objects {
+            (obj1.clone(), obj2.clone())
         } else {
             objects.sort_by(comparator);
 
-            let mid = start + object_span / 2;
-            (
-                Arc::new(BVHNode::new(objects.clone(), start, mid)) as Arc<dyn Hittable>,
-                Arc::new(BVHNode::new(objects.clone(), mid, end)) as Arc<dyn Hittable>,
-            )
+            let mid = 0usize.midpoint(object_span);
+            let (arr_left, arr_right) = objects.split_at_mut(mid);
+
+            let (left, right): (Arc<dyn Hittable>, Arc<dyn Hittable>) = (
+                Arc::new(Self::new(arr_left)),
+                Arc::new(Self::new(arr_right)),
+            );
+            (left, right)
         };
 
         let bbox = AABB::enclosing(left.bounding_box(), right.bounding_box());
@@ -81,9 +80,9 @@ impl BVHNode {
         Self { left, right, bbox }
     }
 
-    pub fn build(list: HittableList) -> Self {
-        let len = list.objects.len();
-        Self::new(list.objects, 0, len)
+    #[must_use]
+    pub fn build(mut list: HittableList) -> Self {
+        Self::new(&mut list.objects)
     }
 }
 

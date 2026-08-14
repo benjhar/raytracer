@@ -13,7 +13,6 @@ pub struct Isotropic {
     texture: Arc<dyn Texture>,
 }
 
-unsafe impl Send for Isotropic {}
 unsafe impl Sync for Isotropic {}
 
 impl Isotropic {

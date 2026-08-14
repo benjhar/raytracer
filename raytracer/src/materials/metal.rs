@@ -1,6 +1,6 @@
 use std::sync::Arc;
 
-use linalg::vector::Vector;
+use linalg::{num_traits::ops::mul_add::MulAdd, vector::Vector};
 
 use crate::{
     engine::{hittable::HitRecord, ray::Ray},
@@ -22,7 +22,6 @@ impl Metal {
     }
 }
 
-unsafe impl Send for Metal {}
 unsafe impl Sync for Metal {}
 
 impl Material for Metal {
@@ -34,8 +33,12 @@ impl Material for Metal {
         scattered: &mut Ray,
     ) -> bool {
         let mut reflected = Vector::reflect(ray_in.direction().unit(), record.normal);
-        reflected = reflected.unit()
-            + (self.roughness.value(record.u, record.v, &record.p) * Vector::random_unit_vector());
+        reflected = self
+            .roughness
+            .value(record.u, record.v, &record.p)
+            .mul_add(Vector::random_unit_vector(), reflected.unit());
+        // reflected = reflected.unit()
+        //     + (self.roughness.value(record.u, record.v, &record.p) * Vector::random_unit_vector());
 
         *scattered = Ray::new(record.p, reflected, Some(ray_in.time()));
         *attenuation = self.albedo;

@@ -12,6 +12,7 @@ pub struct AABB {
 }
 
 impl AABB {
+    #[must_use]
     pub const fn new(x: Interval, y: Interval, z: Interval) -> Self {
         let mut aabb = Self { x, y, z };
         aabb.pad_to_minimum();
@@ -20,23 +21,24 @@ impl AABB {
 
     /// Treat the two points a and b as extrema for the bounding box, so we don't require a
     /// particular minimum/maximum coordinate order
-    pub fn build(a: Point<f64, 3>, b: Point<f64, 3>) -> Self {
-        let x = if a.x() <= b.x() {
-            Interval::new(a.x(), b.x())
+    #[must_use]
+    pub fn build(north: Point<f64, 3>, south: Point<f64, 3>) -> Self {
+        let x = if north.x() <= south.x() {
+            Interval::new(north.x(), south.x())
         } else {
-            Interval::new(b.x(), a.x())
+            Interval::new(south.x(), north.x())
         };
 
-        let y = if a.y() <= b.y() {
-            Interval::new(a.y(), b.y())
+        let y = if north.y() <= south.y() {
+            Interval::new(north.y(), south.y())
         } else {
-            Interval::new(b.y(), a.y())
+            Interval::new(south.y(), north.y())
         };
 
-        let z = if a.z() <= b.z() {
-            Interval::new(a.z(), b.z())
+        let z = if north.z() <= south.z() {
+            Interval::new(north.z(), south.z())
         } else {
-            Interval::new(b.z(), a.z())
+            Interval::new(south.z(), north.z())
         };
 
         let mut aabb = Self { x, y, z };
@@ -44,7 +46,8 @@ impl AABB {
         aabb
     }
 
-    pub fn enclosing(box0: AABB, box1: AABB) -> Self {
+    #[must_use]
+    pub fn enclosing(box0: Self, box1: Self) -> Self {
         let x = Interval::enclosing(box0.x, box1.x);
         let y = Interval::enclosing(box0.y, box1.y);
         let z = Interval::enclosing(box0.z, box1.z);
@@ -52,7 +55,7 @@ impl AABB {
         Self { x, y, z }
     }
 
-    pub fn axis_interval(&self, n: usize) -> &Interval {
+    pub const fn axis_interval(&self, n: usize) -> &Interval {
         if n == 1 {
             return &self.y;
         }
@@ -62,6 +65,7 @@ impl AABB {
         &self.x
     }
 
+    #[must_use]
     pub fn hit(&self, r: &Ray, mut ray_t: Interval) -> bool {
         let ray_orig = r.origin();
         let ray_dir = r.direction();
@@ -97,18 +101,21 @@ impl AABB {
         true
     }
 
+    #[must_use]
     pub const fn universe() -> Self {
-        AABB::new(
+        Self::new(
             Interval::universe(),
             Interval::universe(),
             Interval::universe(),
         )
     }
 
+    #[must_use]
     pub const fn empty() -> Self {
-        AABB::new(Interval::empty(), Interval::empty(), Interval::empty())
+        Self::new(Interval::empty(), Interval::empty(), Interval::empty())
     }
 
+    #[must_use]
     pub fn longest_axis(&self) -> u8 {
         if self.x.size() > self.y.size() {
             if self.x.size() > self.z.size() {
@@ -139,8 +146,12 @@ impl AABB {
 }
 
 impl Add<Vector<f64, 3>> for AABB {
-    type Output = AABB;
+    type Output = Self;
+    #[expect(
+        clippy::arithmetic_side_effects,
+        reason = "Side effects are expected in general arithmetic operations"
+    )]
     fn add(self, rhs: Vector<f64, 3>) -> Self::Output {
-        AABB::new(self.x + rhs.x(), self.y + rhs.y(), self.z + rhs.z())
+        Self::new(self.x + rhs.x(), self.y + rhs.y(), self.z + rhs.z())
     }
 }

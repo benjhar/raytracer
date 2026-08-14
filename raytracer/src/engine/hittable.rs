@@ -5,7 +5,6 @@ use rand::random;
 
 use crate::{
     bounding_volume_hierarchies::aabb::AABB,
-    degrees_to_radians,
     materials::{Isotropic, Lambertian, Material},
     textures::Texture,
     util::{colour::Colour, interval::Interval},
@@ -26,7 +25,7 @@ pub struct HitRecord {
 
 impl Default for HitRecord {
     fn default() -> Self {
-        HitRecord {
+        Self {
             p: Point::default(),
             normal: Vector::default(),
             material: Arc::new(Lambertian::from_colour(Colour::new([1.; 3]))),
@@ -41,6 +40,10 @@ impl Default for HitRecord {
 impl HitRecord {
     /// Sets the hit normal vector.
     /// NOTE: the parameter `outward_normal` is assumed to have unit length.
+    #[expect(
+        clippy::arithmetic_side_effects,
+        reason = "Vector<f64, 3> does not cause side-effects"
+    )]
     pub fn set_face_normal(&mut self, ray: &Ray, outward_normal: &Vector<f64, 3>) {
         self.front_face = ray.direction().dot(outward_normal) < 0.;
         self.normal = if self.front_face {
@@ -51,7 +54,7 @@ impl HitRecord {
     }
 }
 
-pub trait Hittable: Send + Sync {
+pub trait Hittable: Sync {
     fn hit(&self, ray: &Ray, ray_t: Interval, record: &mut HitRecord) -> bool;
 
     fn bounding_box(&self) -> AABB;
@@ -62,6 +65,8 @@ pub struct Translate {
     offset: Vector<f64, 3>,
 }
 
+unsafe impl Sync for Translate {}
+
 impl Translate {
     pub fn new(object: Arc<dyn Hittable>, offset: Vector<f64, 3>) -> Self {
         Self { object, offset }
@@ -69,6 +74,10 @@ impl Translate {
 }
 
 impl Hittable for Translate {
+    #[expect(
+        clippy::arithmetic_side_effects,
+        reason = "Vector<f64, 3> does not cause side-effects"
+    )]
     fn hit(&self, ray: &Ray, ray_t: Interval, record: &mut HitRecord) -> bool {
         let offset_r = Ray::new(
             ray.origin() - self.offset,
@@ -85,6 +94,10 @@ impl Hittable for Translate {
         true
     }
 
+    #[expect(
+        clippy::arithmetic_side_effects,
+        reason = "Vector<f64, 3> does not cause side-effects"
+    )]
     fn bounding_box(&self) -> AABB {
         self.object.bounding_box() + self.offset
     }
@@ -97,9 +110,11 @@ pub struct RotateY {
     bbox: AABB,
 }
 
+unsafe impl Sync for RotateY {}
+
 impl RotateY {
     pub fn new(object: Arc<dyn Hittable>, angle: f64) -> Self {
-        let radians = degrees_to_radians(angle);
+        let radians = angle.to_radians();
         let sin_theta = radians.sin();
         let cos_theta = radians.cos();
         let bbox = object.bounding_box();
@@ -110,18 +125,23 @@ impl RotateY {
         for i in 0..2 {
             for j in 0..2 {
                 for k in 0..2 {
-                    let x = i as f64 * bbox.x.max + (1 - i) as f64 * bbox.x.min;
-                    let y = j as f64 * bbox.y.max + (1 - j) as f64 * bbox.y.min;
-                    let z = k as f64 * bbox.z.max + (1 - k) as f64 * bbox.z.min;
+                    let x = f64::from(i)
+                        .mul_add(bbox.x.max, f64::from(1i32.saturating_sub(i)) * bbox.x.min);
+                    let y = f64::from(j)
+                        .mul_add(bbox.y.max, f64::from(1i32.saturating_sub(j)) * bbox.y.min);
+                    let z = f64::from(k)
+                        .mul_add(bbox.z.max, f64::from(1i32.saturating_sub(k)) * bbox.z.min);
 
-                    let new_x = cos_theta * x + sin_theta * z;
-                    let new_z = -sin_theta * x + cos_theta * z;
+                    let new_x = cos_theta.mul_add(x, sin_theta * z);
+                    let new_z = cos_theta.mul_add(z, -sin_theta * x);
 
-                    let tester = Vector::new([new_x, y, new_z]);
+                    let tester = [new_x, y, new_z];
 
-                    for c in 0..3 {
-                        min[c] = min[c].min(tester[c]);
-                        max[c] = max[c].max(tester[c]);
+                    for (min_item, (max_item, tester_item)) in
+                        min.iter_mut().zip(max.iter_mut().zip(tester.iter()))
+                    {
+                        *min_item = min_item.min(*tester_item);
+                        *max_item = max_item.max(*tester_item);
                     }
                 }
             }
@@ -143,15 +163,19 @@ impl Hittable for RotateY {
         // Transform the ray from world space to object space
 
         let origin = Point::new([
-            (self.cos_theta * ray.origin().x()) - (self.sin_theta * ray.origin().z()),
+            self.cos_theta
+                .mul_add(ray.origin().x(), -(self.sin_theta * ray.origin().z())),
             ray.origin().y(),
-            (self.sin_theta * ray.origin().x()) + (self.cos_theta * ray.origin().z()),
+            self.cos_theta
+                .mul_add(ray.origin().z(), self.sin_theta * ray.origin().x()),
         ]);
 
         let direction = Vector::new([
-            (self.cos_theta * ray.direction().x()) - (self.sin_theta * ray.direction().z()),
+            self.cos_theta
+                .mul_add(ray.direction().x(), -(self.sin_theta * ray.direction().z())),
             ray.direction().y(),
-            (self.sin_theta * ray.direction().x()) + (self.cos_theta * ray.direction().z()),
+            self.cos_theta
+                .mul_add(ray.direction().z(), self.sin_theta * ray.direction().x()),
         ]);
 
         let rotated_r = Ray::new(origin, direction, Some(ray.time()));
@@ -165,15 +189,20 @@ impl Hittable for RotateY {
         // Transform the intersection from object space back to world space.
 
         record.p = Point::new([
-            (self.cos_theta * record.p.x()) + (self.sin_theta * record.p.z()),
+            self.cos_theta
+                .mul_add(record.p.x(), self.sin_theta * record.p.z()),
+            // (self.cos_theta * record.p.x()) + (self.sin_theta * record.p.z()),
             record.p.y(),
-            (-self.sin_theta * record.p.x()) + (self.cos_theta * record.p.z()),
+            self.cos_theta
+                .mul_add(record.p.z(), -self.sin_theta * record.p.x()),
         ]);
 
         record.normal = Vector::new([
-            (self.cos_theta * record.normal.x()) + (self.sin_theta * record.normal.z()),
+            self.cos_theta
+                .mul_add(record.normal.x(), self.sin_theta * record.normal.z()),
             record.normal.y(),
-            (-self.sin_theta * record.normal.x()) + (self.cos_theta * record.normal.z()),
+            self.cos_theta
+                .mul_add(record.normal.z(), -self.sin_theta * record.normal.x()),
         ]);
 
         true
@@ -189,6 +218,8 @@ pub struct ConstantMedium {
     neg_inv_density: f64,
     phase_function: Arc<dyn Material>,
 }
+
+unsafe impl Sync for ConstantMedium {}
 
 impl ConstantMedium {
     pub fn new(boundary: Arc<dyn Hittable>, density: f64, texture: Arc<dyn Texture>) -> Self {

@@ -13,7 +13,10 @@ pub struct HittableList {
     bbox: AABB,
 }
 
+unsafe impl Sync for HittableList {}
+
 impl HittableList {
+    #[must_use]
     pub fn new() -> Self {
         Self {
             objects: Vec::new(),
@@ -21,7 +24,7 @@ impl HittableList {
         }
     }
 
-    pub fn from_object(object: Arc<dyn Hittable>) -> Self {
+    pub fn from_object(object: &Arc<dyn Hittable>) -> Self {
         Self {
             objects: vec![object.clone()],
             bbox: object.bounding_box(),
@@ -32,6 +35,10 @@ impl HittableList {
         self.objects.clear();
     }
 
+    #[expect(
+        clippy::needless_pass_by_value,
+        reason = "Passing a ref makes type coercion difficult, and this is not a hot path."
+    )]
     pub fn add(&mut self, object: Arc<dyn Hittable>) {
         self.objects.push(object.clone());
         self.bbox = AABB::enclosing(self.bbox, object.bounding_box());

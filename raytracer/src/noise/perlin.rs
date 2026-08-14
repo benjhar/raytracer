@@ -14,16 +14,21 @@ pub struct Perlin {
 
 impl Perlin {
     pub fn new(seed: Option<u64>) -> Self {
-        let mut rng = if let Some(s) = seed {
-            StdRng::seed_from_u64(s)
-        } else {
-            StdRng::from_entropy()
-        };
+        let mut rng = seed.map_or_else(StdRng::from_entropy, StdRng::seed_from_u64);
         let randvec = array::from_fn(|_| Vector::random_range(-1., 1.).unit());
 
-        let perm_x = Self::permute(array::from_fn(|i| i as u32), &mut rng);
-        let perm_y = Self::permute(array::from_fn(|i| i as u32), &mut rng);
-        let perm_z = Self::permute(array::from_fn(|i| i as u32), &mut rng);
+        let perm_x = Self::permute(
+            array::from_fn(|i| u32::try_from(i).unwrap_or_default()),
+            &mut rng,
+        );
+        let perm_y = Self::permute(
+            array::from_fn(|i| u32::try_from(i).unwrap_or_default()),
+            &mut rng,
+        );
+        let perm_z = Self::permute(
+            array::from_fn(|i| u32::try_from(i).unwrap_or_default()),
+            &mut rng,
+        );
 
         Self {
             randvec,
@@ -33,21 +38,24 @@ impl Perlin {
         }
     }
 
-    fn value(&self, p: Point<f64, 3>) -> f64 {
-        let p_floor = p.map(f64::floor);
-        let offset_vector = p - p_floor;
-        let [i, j, k] = p_floor.map(|a| a as i64).to_array();
+    #[expect(clippy::arithmetic_side_effects, reason = "Float")]
+    fn value(&self, point: Point<f64, 3>) -> f64 {
+        let point_floor = point.map(f64::floor);
+        let offset_vector = point - point_floor;
+        let [point_i, point_j, point_k] = point_floor.map(|a| a as usize).to_array();
 
         let mut c = [[[Vector::zero(); 2]; 2]; 2];
 
-        for di in 0..2i64 {
-            for dj in 0..2i64 {
-                for dk in 0..2i64 {
-                    c[di as usize][dj as usize][dk as usize] = self.randvec[(self.perm_x
-                        [(i + di) as usize & 255]
-                        ^ self.perm_y[(j + dj) as usize & 255]
-                        ^ self.perm_z[(k + dk) as usize & 255])
-                        as usize];
+        for (di, noise2d) in c.iter_mut().enumerate() {
+            for (dj, noise1d) in noise2d.iter_mut().enumerate() {
+                #[expect(clippy::indexing_slicing, reason = "All indices within range")]
+                for (dk, noise0d) in noise1d.iter_mut().enumerate() {
+                    *noise0d = self.randvec[usize::try_from(
+                        self.perm_x[(point_i + di) & (POINT_COUNT - 1)]
+                            ^ self.perm_y[(point_j + dj) & (POINT_COUNT - 1)]
+                            ^ self.perm_z[(point_k + dk) & (POINT_COUNT - 1)],
+                    )
+                    .unwrap_or_default()];
                 }
             }
         }
@@ -55,11 +63,13 @@ impl Perlin {
         Self::perlin_interp(c, offset_vector)
     }
 
+    #[must_use]
     pub fn noise(&self, p: Point<f64, 3>, octaves: usize, roughness: f64, lacunarity: f64) -> f64 {
         let mut acc = 0.;
         let mut temp_p = p;
         let mut weight = 1.;
 
+        #[expect(clippy::arithmetic_side_effects, reason = "Floats")]
         for _ in 0..octaves {
             acc += weight * self.value(temp_p);
             weight *= roughness;

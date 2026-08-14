@@ -13,6 +13,7 @@ fn linear_to_gamma(linear_component: f64) -> f64 {
     0.0
 }
 
+#[no_panic::no_panic]
 pub fn write_colour(pixel_colour: Colour) -> Rgb<u8> {
     let mut r = pixel_colour.x();
     let mut g = pixel_colour.y();

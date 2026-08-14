@@ -1,9 +1,11 @@
-use std::sync::Arc;
+use image::RgbImage;
+use std::{num::NonZeroU32, sync::Arc};
 
 use linalg::{vector::Vector, Point};
 use raytracer::{
+    bounding_volume_hierarchies::bvh::BVHNode,
     engine::{
-        camera::Camera,
+        camera::{Camera, CameraSettings},
         hittable::{ConstantMedium, Hittable, RotateY, Translate},
         hittable_list::HittableList,
     },
@@ -79,21 +81,27 @@ fn main() -> Result<(), image::ImageError> {
         Colour::one(),
     )));
 
-    let mut cam = Camera::default();
+    let world = BVHNode::build(world);
 
-    cam.aspect_ratio = 1.0;
-    cam.width = 600;
-    cam.samples_per_pixel = 20;
-    cam.max_depth = 50;
-    cam.background = Colour::zero();
+    let mut cam_settings = CameraSettings::default();
 
-    cam.vfov = 40.;
-    cam.lookfrom = Point::new([278., 278., -800.]);
-    cam.lookat = Point::new([278., 278., 0.]);
-    cam.vup = Vector::new([0., 1., 0.]);
+    cam_settings.width = NonZeroU32::new(600).unwrap();
+    cam_settings.height = NonZeroU32::new(600).unwrap();
+    cam_settings.samples_per_pixel = NonZeroU32::new(20).unwrap();
+    cam_settings.max_depth = NonZeroU32::new(50).unwrap();
+    cam_settings.background = Colour::zero();
 
-    cam.defocus_angle = 0.;
-    cam.focus_dist = 26.;
+    cam_settings.vfov = 40.;
+    cam_settings.lookfrom = Point::new([278., 278., -800.]);
+    cam_settings.lookat = Point::new([278., 278., 0.]);
+    cam_settings.vup = Vector::new([0., 1., 0.]);
 
-    cam.render("foggy_cornell.png", world)
+    cam_settings.defocus_angle = 0.;
+    cam_settings.focus_dist = 26.;
+
+    let imgbuf = RgbImage::new(cam_settings.width.into(), cam_settings.height.into());
+
+    let cam = Camera::new(&cam_settings);
+
+    cam.render("foggy_cornell.png", &world, imgbuf)
 }

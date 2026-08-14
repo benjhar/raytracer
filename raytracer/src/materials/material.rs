@@ -5,17 +5,17 @@ use crate::{
 
 use linalg::Point;
 
-pub trait Material: Send + Sync {
-    fn emitted(&self, u: f64, v: f64, point: &Point<f64, 3>) -> Colour {
+pub trait Material: Sync {
+    fn emitted(&self, _u: f64, _v: f64, _point: &Point<f64, 3>) -> Colour {
         Colour::zero()
     }
 
     fn scatter(
         &self,
-        ray_in: &Ray,
-        record: &HitRecord,
-        attenuation: &mut Colour,
-        scattered: &mut Ray,
+        _ray_in: &Ray,
+        _record: &HitRecord,
+        _attenuation: &mut Colour,
+        _scattered: &mut Ray,
     ) -> bool {
         false
     }

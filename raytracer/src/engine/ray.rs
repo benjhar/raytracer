@@ -8,27 +8,33 @@ pub struct Ray {
 }
 
 impl Ray {
+    #[must_use]
     pub fn new(origin: Point<f64, 3>, direction: Vector<f64, 3>, time: Option<f64>) -> Self {
-        Ray {
+        Self {
             origin,
             direction,
             time: time.unwrap_or(0.0),
         }
     }
 
-    pub fn origin(&self) -> Point<f64, 3> {
+    pub const fn origin(&self) -> Point<f64, 3> {
         self.origin
     }
 
-    pub fn direction(&self) -> Vector<f64, 3> {
+    pub const fn direction(&self) -> Vector<f64, 3> {
         self.direction
     }
 
-    pub fn time(&self) -> f64 {
+    #[must_use]
+    pub const fn time(&self) -> f64 {
         self.time
     }
 
     pub fn at(&self, t: f64) -> Point<f64, 3> {
-        self.origin + self.direction * t
+        Point::new([
+            self.direction.x().mul_add(t, self.origin.x()),
+            self.direction.y().mul_add(t, self.origin.y()),
+            self.direction.z().mul_add(t, self.origin.z()),
+        ])
     }
 }

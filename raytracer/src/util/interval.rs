@@ -1,7 +1,6 @@
 use std::ops::Add;
 
-use linalg::vector::Vector;
-
+#[must_use]
 #[derive(Clone, Copy)]
 pub struct Interval {
     pub min: f64,
@@ -10,24 +9,27 @@ pub struct Interval {
 
 impl Interval {
     pub const fn new(min: f64, max: f64) -> Self {
-        Interval { min, max }
+        Self { min, max }
     }
 
     /// Creates an interval tightly enclosing the two input intervals
-    pub fn enclosing(a: Interval, b: Interval) -> Self {
+    pub fn enclosing(a: Self, b: Self) -> Self {
         let min = if a.min <= b.min { a.min } else { b.min };
         let max = if a.max >= b.max { a.max } else { b.max };
         Self { min, max }
     }
 
+    #[must_use]
     pub fn contains(&self, x: f64) -> bool {
         self.min <= x && x <= self.max
     }
 
+    #[must_use]
     pub fn surrounds(&self, x: f64) -> bool {
         self.min < x && x < self.max
     }
 
+    #[must_use]
     pub fn clamp(&self, x: f64) -> f64 {
         if x < self.min {
             return self.min;
@@ -38,7 +40,7 @@ impl Interval {
         x
     }
 
-    pub const fn expand(&self, delta: f64) -> Interval {
+    pub const fn expand(&self, delta: f64) -> Self {
         let padding = delta / 2.;
         let mut new = *self;
         new.min -= padding;
@@ -46,6 +48,7 @@ impl Interval {
         new
     }
 
+    #[must_use]
     pub const fn size(&self) -> f64 {
         (self.max - self.min).abs()
     }
@@ -72,9 +75,9 @@ impl Default for Interval {
 }
 
 impl Add<f64> for Interval {
-    type Output = Interval;
+    type Output = Self;
 
     fn add(self, rhs: f64) -> Self::Output {
-        Interval::new(self.min + rhs, self.max + rhs)
+        Self::new(self.min + rhs, self.max + rhs)
     }
 }

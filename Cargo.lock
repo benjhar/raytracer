@@ -37,7 +37,7 @@ checksum = "0ae92a5119aa49cdbcf6b9f893fe4e1d98b04ccbf82ee0584ad948a44a734dea"
 dependencies = [
  "proc-macro2",
  "quote",
- "syn",
+ "syn 2.0.104",
 ]
 
 [[package]]
@@ -104,7 +104,7 @@ name = "bouncing_spheres"
 version = "0.1.0"
 dependencies = [
  "image",
- "linalg",
+ "linalg 0.1.0 (git+https://github.com/benjhar/linalg.git)",
  "rand",
  "raytracer",
 ]
@@ -165,7 +165,7 @@ name = "checkered_spheres"
 version = "0.1.0"
 dependencies = [
  "image",
- "linalg",
+ "linalg 0.1.0 (git+https://github.com/benjhar/linalg.git)",
  "raytracer",
 ]
 
@@ -180,7 +180,7 @@ name = "combined"
 version = "0.1.0"
 dependencies = [
  "image",
- "linalg",
+ "linalg 0.1.0 (git+https://github.com/benjhar/linalg.git)",
  "rand",
  "raytracer",
 ]
@@ -190,7 +190,7 @@ name = "cornell_box"
 version = "0.1.0"
 dependencies = [
  "image",
- "linalg",
+ "linalg 0.1.0 (git+https://github.com/benjhar/linalg.git)",
  "raytracer",
 ]
 
@@ -264,7 +264,7 @@ name = "earth"
 version = "0.1.0"
 dependencies = [
  "image",
- "linalg",
+ "linalg 0.1.0 (git+https://github.com/benjhar/linalg.git)",
  "raytracer",
 ]
 
@@ -291,7 +291,7 @@ checksum = "44f23cf4b44bfce11a86ace86f8a73ffdec849c9fd00a386a53d278bd9e81fb3"
 dependencies = [
  "proc-macro2",
  "quote",
- "syn",
+ "syn 2.0.104",
 ]
 
 [[package]]
@@ -339,7 +339,7 @@ name = "foggy_cornell"
 version = "0.1.0"
 dependencies = [
  "image",
- "linalg",
+ "linalg 0.1.0",
  "raytracer",
 ]
 
@@ -455,7 +455,7 @@ checksum = "c34819042dc3d3971c46c2190835914dfbe0c3c13f61449b2997f4e9722dfa60"
 dependencies = [
  "proc-macro2",
  "quote",
- "syn",
+ "syn 2.0.104",
 ]
 
 [[package]]
@@ -508,10 +508,17 @@ dependencies = [
 [[package]]
 name = "linalg"
 version = "0.1.0"
-source = "git+https://github.com/benjhar/linalg.git#62eb40f4d98381d18431df67677b35c9d86b2449"
 dependencies = [
  "num-traits",
  "rand",
+]
+
+[[package]]
+name = "linalg"
+version = "0.1.0"
+source = "git+https://github.com/benjhar/linalg.git#62eb40f4d98381d18431df67677b35c9d86b2449"
+dependencies = [
+ "num-traits",
 ]
 
 [[package]]
@@ -590,6 +597,17 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "650eef8c711430f1a879fdd01d4745a7deea475becfb90269c06775983bbf086"
 
 [[package]]
+name = "no-panic"
+version = "0.1.37"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "fc80370b4544f28ffa317e3c3474ee3ecbfe269196c01ae657d9f837a7d944a1"
+dependencies = [
+ "proc-macro2",
+ "quote",
+ "syn 3.0.3",
+]
+
+[[package]]
 name = "nom"
 version = "7.1.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -623,7 +641,7 @@ checksum = "ed3955f1a9c7c0c15e092f9c887db08b1fc683305fdf6eb6684f22555355e202"
 dependencies = [
  "proc-macro2",
  "quote",
- "syn",
+ "syn 2.0.104",
 ]
 
 [[package]]
@@ -695,7 +713,7 @@ name = "perlin_spheres"
 version = "0.1.0"
 dependencies = [
  "image",
- "linalg",
+ "linalg 0.1.0 (git+https://github.com/benjhar/linalg.git)",
  "raytracer",
 ]
 
@@ -752,7 +770,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "52717f9a02b6965224f95ca2a81e2e0c5c43baacd28ca057577988930b6c3d5b"
 dependencies = [
  "quote",
- "syn",
+ "syn 2.0.104",
 ]
 
 [[package]]
@@ -769,7 +787,7 @@ name = "quads"
 version = "0.1.0"
 dependencies = [
  "image",
- "linalg",
+ "linalg 0.1.0 (git+https://github.com/benjhar/linalg.git)",
  "raytracer",
 ]
 
@@ -899,7 +917,8 @@ name = "raytracer"
 version = "0.1.0"
 dependencies = [
  "image",
- "linalg",
+ "linalg 0.1.0",
+ "no-panic",
  "rand",
  "rayon",
  "tqdm",
@@ -925,7 +944,7 @@ name = "roughness_map"
 version = "0.1.0"
 dependencies = [
  "image",
- "linalg",
+ "linalg 0.1.0 (git+https://github.com/benjhar/linalg.git)",
  "raytracer",
 ]
 
@@ -958,7 +977,7 @@ checksum = "5b0276cf7f2c73365f7157c8123c21cd9a50fbbd844757af28ca1f5925fc2a00"
 dependencies = [
  "proc-macro2",
  "quote",
- "syn",
+ "syn 2.0.104",
 ]
 
 [[package]]
@@ -1026,7 +1045,7 @@ name = "simple_light"
 version = "0.1.0"
 dependencies = [
  "image",
- "linalg",
+ "linalg 0.1.0 (git+https://github.com/benjhar/linalg.git)",
  "raytracer",
 ]
 
@@ -1041,6 +1060,17 @@ name = "syn"
 version = "2.0.104"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "17b6f705963418cdb9927482fa304bc562ece2fdd4f616084c50b7023b435a40"
+dependencies = [
+ "proc-macro2",
+ "quote",
+ "unicode-ident",
+]
+
+[[package]]
+name = "syn"
+version = "3.0.3"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "53e9bae58849f64dfa4f5d5ae372c8341f7305f82a3868709269343628b659a3"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -1083,7 +1113,7 @@ checksum = "4fee6c4efc90059e10f81e6d42c60a18f76588c3d74cb83a0b242a2b6c7504c1"
 dependencies = [
  "proc-macro2",
  "quote",
- "syn",
+ "syn 2.0.104",
 ]
 
 [[package]]
@@ -1202,7 +1232,7 @@ dependencies = [
  "log",
  "proc-macro2",
  "quote",
- "syn",
+ "syn 2.0.104",
  "wasm-bindgen-shared",
 ]
 
@@ -1224,7 +1254,7 @@ checksum = "8ae87ea40c9f689fc23f209965b6fb8a99ad69aeeb0231408be24920604395de"
 dependencies = [
  "proc-macro2",
  "quote",
- "syn",
+ "syn 2.0.104",
  "wasm-bindgen-backend",
  "wasm-bindgen-shared",
 ]
@@ -1431,7 +1461,7 @@ checksum = "9ecf5b4cc5364572d7f4c329661bcc82724222973f2cab6f050a4e5c22f75181"
 dependencies = [
  "proc-macro2",
  "quote",
- "syn",
+ "syn 2.0.104",
 ]
 
 [[package]]

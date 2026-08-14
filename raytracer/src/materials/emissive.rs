@@ -10,7 +10,6 @@ pub struct DiffuseLight {
     texture: Arc<dyn Texture>,
 }
 
-unsafe impl Send for DiffuseLight {}
 unsafe impl Sync for DiffuseLight {}
 
 impl DiffuseLight {

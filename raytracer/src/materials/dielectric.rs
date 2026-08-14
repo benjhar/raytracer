@@ -1,6 +1,6 @@
 use std::sync::Arc;
 
-use linalg::vector::Vector;
+use linalg::{num_traits::ops::mul_add::MulAdd, vector::Vector};
 use rand::random;
 
 use crate::{
@@ -17,7 +17,6 @@ pub struct Dielectric {
     roughness: Arc<dyn Texture>,
 }
 
-unsafe impl Send for Dielectric {}
 unsafe impl Sync for Dielectric {}
 
 impl Dielectric {
@@ -33,7 +32,7 @@ impl Dielectric {
         let mut r0 = (1.0 - refractive_index) / (1. + refractive_index);
         r0 = r0 * r0;
 
-        r0 + (1. - r0) * (1. - cosine).powi(5)
+        (1. - r0).mul_add((1. - cosine).powi(5), r0)
     }
 }
 
@@ -54,15 +53,20 @@ impl Material for Dielectric {
 
         let unit_direction = ray_in.direction().unit();
 
+        #[expect(clippy::arithmetic_side_effects, reason = "Floats")]
         let cos_theta = (-unit_direction).dot(&record.normal).min(1.0);
         let sin_theta = (1.0 - cos_theta * cos_theta).sqrt();
 
         let cannot_refract = ri * sin_theta > 1.0;
 
         let direction = if cannot_refract || Self::reflectance(cos_theta, ri) > random::<f64>() {
-            Vector::reflect(unit_direction, record.normal).unit()
-                + (self.roughness.value(record.u, record.v, &record.p)
-                    * Vector::random_unit_vector())
+            self.roughness.value(record.u, record.v, &record.p).mul_add(
+                Vector::random_unit_vector(),
+                Vector::reflect(unit_direction, record.normal).unit(),
+            )
+            // Vector::reflect(unit_direction, record.normal).unit()
+            //     + (self.roughness.value(record.u, record.v, &record.p)
+            //         * Vector::random_unit_vector())
         } else {
             Vector::refract(&unit_direction, &record.normal, ri)
         };
