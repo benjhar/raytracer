@@ -14,6 +14,7 @@ use super::{
     ray::Ray,
 };
 
+#[derive(Clone, Copy)]
 pub struct CameraSettings {
     pub width: NonZeroU32,
     pub height: NonZeroU32,
