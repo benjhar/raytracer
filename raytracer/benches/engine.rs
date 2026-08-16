@@ -125,6 +125,9 @@ fn render_benchmark(c: &mut Criterion) {
         }
     }
 
+    c.throughput(criterion::Throughput::Elements(u64::from(
+        cornell_camera.height.get() * cornell_camera.width.get(),
+    )));
     c.bench_with_input(
         BenchmarkId::from_parameter("cornell"),
         &(cornell_camera, cornell_bvh),
@@ -164,6 +167,11 @@ fn get_ray_benchmark(c: &mut Criterion) {
         }
     }
 
+    c.throughput(criterion::Throughput::Elements(u64::from(
+        cornell_camera.samples_per_pixel.get()
+            * cornell_camera.height.get()
+            * cornell_camera.width.get(),
+    )));
     c.bench_with_input(
         BenchmarkId::from_parameter("cornell"),
         &cornell_camera,
@@ -214,6 +222,11 @@ fn ray_colour_benchmark(c: &mut Criterion) {
         }
     }
 
+    c.throughput(criterion::Throughput::Elements(u64::from(
+        cornell_camera.samples_per_pixel.get()
+            * cornell_camera.height.get()
+            * cornell_camera.width.get(),
+    )));
     c.bench_with_input(
         BenchmarkId::from_parameter("cornell"),
         &(cornell_camera, cornell_bvh),
