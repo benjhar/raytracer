@@ -1,11 +1,11 @@
 use image::RgbImage;
 use linalg::vector::Vector;
 use linalg::Point;
-use rand::random;
 use rayon::prelude::*;
 use std::num::NonZeroU32;
 use std::path::Path;
 
+use crate::thread_rng;
 use crate::util::colour::{write_colour, Colour};
 use crate::util::interval::Interval;
 
@@ -249,7 +249,7 @@ impl Camera {
             self.defocus_disk_sample()
         };
         let ray_direction = pixel_sample - ray_origin;
-        let ray_time = random::<f64>();
+        let ray_time = thread_rng().f64_inclusive();
 
         Ray::new(ray_origin, ray_direction, Some(ray_time))
     }
@@ -257,8 +257,9 @@ impl Camera {
     /// Returns the vector to a random point in the square sub-pixel specified by grid indices
     /// `s_i` and `s_j`, for an idealized unit square pixel [-.5,-.5] to [+.5,+.5]
     pub fn sample_square_stratified(&self, s_i: u32, s_j: u32) -> Vector<f64, 3> {
-        let px = (f64::from(s_i) + random::<f64>()).mul_add(self.recip_sqrt_spp, -0.5);
-        let py = (f64::from(s_j) + random::<f64>()).mul_add(self.recip_sqrt_spp, -0.5);
+        let mut rng = thread_rng();
+        let px = (f64::from(s_i) + rng.f64_inclusive()).mul_add(self.recip_sqrt_spp, -0.5);
+        let py = (f64::from(s_j) + rng.f64_inclusive()).mul_add(self.recip_sqrt_spp, -0.5);
 
         Vector::new([px, py, 0.])
     }
@@ -269,7 +270,7 @@ impl Camera {
         reason = "Vector<f64, 3> does not cause side-effects"
     )]
     pub fn defocus_disk_sample(&self) -> Point<f64, 3> {
-        let p = Vector::random_in_unit_disk();
+        let p = Vector::random_in_unit_disk_with_rng(|| thread_rng().f64_inclusive());
         self.centre + (p.x() * self.defocus_disk_u) + (p.y() * self.defocus_disk_v)
     }
 }

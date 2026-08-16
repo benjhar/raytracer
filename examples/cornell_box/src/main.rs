@@ -1,9 +1,11 @@
-use std::sync::Arc;
+use std::{num::NonZeroU32, sync::Arc};
 
+use image::RgbImage;
 use linalg::{vector::Vector, Point};
 use raytracer::{
+    bounding_volume_hierarchies::bvh::BVHNode,
     engine::{
-        camera::Camera,
+        camera::{Camera, CameraSettings},
         hittable::{Hittable, RotateY, Translate},
         hittable_list::HittableList,
     },
@@ -71,21 +73,29 @@ fn main() -> Result<(), image::ImageError> {
     box2 = Arc::new(Translate::new(box2, Vector::new([130., 0., 65.])));
     world.add(box2);
 
-    let mut cam = Camera::default();
+    let world = BVHNode::build(world);
 
-    cam.aspect_ratio = 1.0;
-    cam.width = 600;
-    cam.samples_per_pixel = 200;
-    cam.max_depth = 50;
-    cam.background = Colour::zero();
+    let mut cam_settings = CameraSettings::default();
 
-    cam.vfov = 40.;
-    cam.lookfrom = Point::new([278., 278., -800.]);
-    cam.lookat = Point::new([278., 278., 0.]);
-    cam.vup = Vector::new([0., 1., 0.]);
+    cam_settings.width = unsafe { NonZeroU32::new_unchecked(600) };
+    cam_settings.height = cam_settings.width;
+    cam_settings.samples_per_pixel = unsafe { NonZeroU32::new_unchecked(200) };
+    cam_settings.max_depth = unsafe { NonZeroU32::new_unchecked(50) };
+    cam_settings.background = Colour::zero();
 
-    cam.defocus_angle = 0.;
-    cam.focus_dist = 26.;
+    cam_settings.vfov = 40.;
+    cam_settings.lookfrom = Point::new([278., 278., -800.]);
+    cam_settings.lookat = Point::new([278., 278., 0.]);
+    cam_settings.vup = Vector::new([0., 1., 0.]);
 
-    cam.render("cornell_box.png", world)
+    cam_settings.defocus_angle = 0.;
+    cam_settings.focus_dist = 26.;
+
+    let cam = Camera::new(&cam_settings);
+
+    cam.render(
+        "cornell_box.png",
+        &world,
+        RgbImage::new(cam_settings.width.get(), cam_settings.height.get()),
+    )
 }

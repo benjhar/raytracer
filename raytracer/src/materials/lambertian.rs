@@ -5,6 +5,7 @@ use linalg::vector::Vector;
 use crate::{
     engine::{hittable::HitRecord, ray::Ray},
     textures::{Solid, Texture},
+    thread_rng,
     util::colour::Colour,
 };
 
@@ -40,7 +41,8 @@ impl Material for Lambertian {
         scattered: &mut Ray,
     ) -> bool {
         #[expect(clippy::arithmetic_side_effects, reason = "Floats")]
-        let mut scatter_direction = record.normal + Vector::random_unit_vector();
+        let mut scatter_direction = record.normal
+            + Vector::random_unit_vector_with_rng(|range| thread_rng().f64_range(range));
 
         if scatter_direction.near_zero() {
             scatter_direction = record.normal;

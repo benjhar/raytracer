@@ -1,11 +1,11 @@
 use std::sync::Arc;
 
 use linalg::{num_traits::ops::mul_add::MulAdd, vector::Vector};
-use rand::random;
 
 use crate::{
     engine::{hittable::HitRecord, ray::Ray},
     textures::Texture,
+    thread_rng,
     util::colour::Colour,
 };
 
@@ -59,14 +59,13 @@ impl Material for Dielectric {
 
         let cannot_refract = ri * sin_theta > 1.0;
 
-        let direction = if cannot_refract || Self::reflectance(cos_theta, ri) > random::<f64>() {
+        let mut rng = thread_rng();
+        let direction = if cannot_refract || Self::reflectance(cos_theta, ri) > rng.f64_inclusive()
+        {
             self.roughness.value(record.u, record.v, &record.p).mul_add(
-                Vector::random_unit_vector(),
+                Vector::random_unit_vector_with_rng(|range| rng.f64_range(range)),
                 Vector::reflect(unit_direction, record.normal).unit(),
             )
-            // Vector::reflect(unit_direction, record.normal).unit()
-            //     + (self.roughness.value(record.u, record.v, &record.p)
-            //         * Vector::random_unit_vector())
         } else {
             Vector::refract(&unit_direction, &record.normal, ri)
         };

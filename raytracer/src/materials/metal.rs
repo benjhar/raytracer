@@ -5,6 +5,7 @@ use linalg::{num_traits::ops::mul_add::MulAdd, vector::Vector};
 use crate::{
     engine::{hittable::HitRecord, ray::Ray},
     textures::Texture,
+    thread_rng,
     util::colour::Colour,
 };
 
@@ -33,12 +34,10 @@ impl Material for Metal {
         scattered: &mut Ray,
     ) -> bool {
         let mut reflected = Vector::reflect(ray_in.direction().unit(), record.normal);
-        reflected = self
-            .roughness
-            .value(record.u, record.v, &record.p)
-            .mul_add(Vector::random_unit_vector(), reflected.unit());
-        // reflected = reflected.unit()
-        //     + (self.roughness.value(record.u, record.v, &record.p) * Vector::random_unit_vector());
+        reflected = self.roughness.value(record.u, record.v, &record.p).mul_add(
+            Vector::random_unit_vector_with_rng(|range| thread_rng().f64_range(range)),
+            reflected.unit(),
+        );
 
         *scattered = Ray::new(record.p, reflected, Some(ray_in.time()));
         *attenuation = self.albedo;

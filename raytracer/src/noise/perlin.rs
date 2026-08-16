@@ -1,7 +1,7 @@
 use std::array;
 
+use fastrand::Rng;
 use linalg::{vector::Vector, Point};
-use rand::{rngs::StdRng, Rng, SeedableRng};
 
 const POINT_COUNT: usize = 256;
 
@@ -14,8 +14,14 @@ pub struct Perlin {
 
 impl Perlin {
     pub fn new(seed: Option<u64>) -> Self {
-        let mut rng = seed.map_or_else(StdRng::from_entropy, StdRng::seed_from_u64);
-        let randvec = array::from_fn(|_| Vector::random_range(-1., 1.).unit());
+        let mut rng = seed.map_or_else(Rng::new, Rng::with_seed);
+        let randvec = array::from_fn(|_| {
+            Vector::random_range_with_rng(-1., 1., |range| {
+                rng.f64_inclusive()
+                    .mul_add(range.end() - range.start(), *range.start())
+            })
+            .unit()
+        });
 
         let perm_x = Self::permute(
             array::from_fn(|i| u32::try_from(i).unwrap_or_default()),
@@ -79,9 +85,9 @@ impl Perlin {
         acc.abs()
     }
 
-    fn permute(mut p: [u32; POINT_COUNT], rng: &mut StdRng) -> [u32; POINT_COUNT] {
+    fn permute(mut p: [u32; POINT_COUNT], rng: &mut Rng) -> [u32; POINT_COUNT] {
         for i in (0..(POINT_COUNT - 1)).rev() {
-            let target = rng.gen_range(0..=i);
+            let target = rng.usize(0..=i);
             p.swap(i, target);
         }
 

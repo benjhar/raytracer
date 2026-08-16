@@ -1,12 +1,12 @@
 use std::sync::Arc;
 
 use linalg::{vector::Vector, Point};
-use rand::random;
 
 use crate::{
     bounding_volume_hierarchies::aabb::AABB,
     materials::{Isotropic, Lambertian, Material},
     textures::Texture,
+    thread_rng,
     util::{colour::Colour, interval::Interval},
 };
 
@@ -279,7 +279,7 @@ impl Hittable for ConstantMedium {
 
         let ray_length = ray.direction().length();
         let distance_inside_boundary = (rec2.distance - rec1.distance) * ray_length;
-        let hit_distance = self.neg_inv_density * random::<f64>().log10();
+        let hit_distance = self.neg_inv_density * thread_rng().f64_inclusive().log10();
 
         if hit_distance > distance_inside_boundary {
             return false;

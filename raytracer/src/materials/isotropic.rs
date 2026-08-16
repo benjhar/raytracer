@@ -6,6 +6,7 @@ use super::Material;
 use crate::{
     engine::ray::Ray,
     textures::{Solid, Texture},
+    thread_rng,
     util::colour::Colour,
 };
 
@@ -37,7 +38,11 @@ impl Material for Isotropic {
         attenuation: &mut Colour,
         scattered: &mut crate::engine::ray::Ray,
     ) -> bool {
-        *scattered = Ray::new(record.p, Vector::random_unit_vector(), Some(ray_in.time()));
+        *scattered = Ray::new(
+            record.p,
+            Vector::random_unit_vector_with_rng(|range| thread_rng().f64_range(range)),
+            Some(ray_in.time()),
+        );
         *attenuation = self.texture.value(record.u, record.v, &record.p);
         true
     }
