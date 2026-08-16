@@ -100,20 +100,18 @@ fn cornell_settings(mut settings: CameraSettings) -> CameraSettings {
     settings
 }
 
-fn cornell_cam_world() -> (Camera, BVHNode) {
-    let base_settings = base_settings();
-
+fn cornell_cam_bvh(base_settings: CameraSettings) -> (Camera, BVHNode) {
     let cornell_settings = cornell_settings(base_settings);
     let cornell_camera = Camera::new(&cornell_settings);
-    let cornell_world = cornell_bvh();
-    (cornell_camera, cornell_world)
+    let cornell_bvh = cornell_bvh();
+    (cornell_camera, cornell_bvh)
 }
 
 fn render_benchmark(c: &mut Criterion) {
     let mut c = c.benchmark_group("render");
     c.sample_size(10);
 
-    let (cornell_camera, cornell_world) = cornell_cam_world();
+    let (cornell_camera, cornell_bvh) = cornell_cam_bvh(base_settings());
 
     fn bench_fn_builder(
         buffer_size: (u32, u32),
@@ -129,7 +127,7 @@ fn render_benchmark(c: &mut Criterion) {
 
     c.bench_with_input(
         BenchmarkId::from_parameter("cornell"),
-        &(cornell_camera, cornell_world),
+        &(cornell_camera, cornell_bvh),
         bench_fn_builder((cornell_camera.width.into(), cornell_camera.height.into())),
     );
     c.finish();
@@ -138,7 +136,7 @@ fn render_benchmark(c: &mut Criterion) {
 fn get_ray_benchmark(c: &mut Criterion) {
     let mut c = c.benchmark_group("get_ray");
 
-    let (cornell_camera, _) = cornell_cam_world();
+    let (cornell_camera, _) = cornell_cam_bvh(base_settings());
 
     fn bench_fn_builder(
         buffer_size: (u32, u32),
@@ -146,16 +144,17 @@ fn get_ray_benchmark(c: &mut Criterion) {
         move |b: &mut criterion::Bencher<'_>, &camera: &Camera| {
             b.iter_batched(
                 || RgbImage::new(buffer_size.0, buffer_size.1),
-                |mut buffer| {
-                    buffer.par_enumerate_pixels_mut().for_each(|(i, j, _)| {
+                |buffer| {
+                    buffer.par_enumerate_pixels().for_each(|(i, j, _)| {
                         for s_i in 0..camera.sqrt_spp.into() {
                             for s_j in 0..camera.sqrt_spp.into() {
-                                black_box(camera.get_ray(
+                                let ray = camera.get_ray(
                                     black_box(i),
                                     black_box(j),
                                     black_box(s_i),
                                     black_box(s_j),
-                                ));
+                                );
+                                black_box(ray);
                             }
                         }
                     })
@@ -174,5 +173,63 @@ fn get_ray_benchmark(c: &mut Criterion) {
     c.finish();
 }
 
-criterion_group!(camera, render_benchmark, get_ray_benchmark);
+fn ray_colour_benchmark(c: &mut Criterion) {
+    let mut c = c.benchmark_group("ray_colour");
+
+    let mut settings = base_settings();
+    settings.max_depth = NonZeroU32::MIN.saturating_add(1);
+    settings.samples_per_pixel = NonZeroU32::MIN.saturating_add(3);
+    let (cornell_camera, cornell_bvh) = cornell_cam_bvh(settings);
+
+    fn bench_fn_builder(
+        buffer_size: (u32, u32),
+        camera: &Camera,
+    ) -> impl FnMut(&mut criterion::Bencher<'_>, &(Camera, BVHNode)) {
+        let mut rays = Vec::new();
+        let buffer = RgbImage::new(buffer_size.0, buffer_size.1);
+        buffer.enumerate_pixels().for_each(|(i, j, _)| {
+            for s_i in 0..camera.sqrt_spp.into() {
+                for s_j in 0..camera.sqrt_spp.into() {
+                    rays.push(camera.get_ray(
+                        black_box(i),
+                        black_box(j),
+                        black_box(s_i),
+                        black_box(s_j),
+                    ));
+                }
+            }
+        });
+
+        move |b: &mut criterion::Bencher<'_>, &(camera, ref world): &(Camera, BVHNode)| {
+            b.iter_batched(
+                || &rays,
+                |rays| {
+                    for ray in rays {
+                        let colour = camera.ray_colour(*black_box(ray), camera.max_depth, world);
+                        let _ = black_box(colour);
+                    }
+                },
+                criterion::BatchSize::LargeInput,
+            );
+        }
+    }
+
+    c.bench_with_input(
+        BenchmarkId::from_parameter("cornell"),
+        &(cornell_camera, cornell_bvh),
+        bench_fn_builder(
+            (cornell_camera.width.into(), cornell_camera.height.into()),
+            &cornell_camera,
+        ),
+    );
+
+    c.finish();
+}
+
+criterion_group!(
+    camera,
+    render_benchmark,
+    get_ray_benchmark,
+    ray_colour_benchmark
+);
 criterion_main!(camera);
