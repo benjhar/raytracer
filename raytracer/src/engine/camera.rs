@@ -61,7 +61,7 @@ pub struct Camera {
     pub focus_dist: f64,
     pub background: Colour,
     pixel_samples_scale: f64,
-    sqrt_spp: NonZeroU32,
+    pub sqrt_spp: NonZeroU32,
     recip_sqrt_spp: f64,
     centre: Point<f64, 3>,
     pixel_delta_v: Vector<f64, 3>,
@@ -189,7 +189,7 @@ impl Camera {
         image.save(filename)
     }
 
-    fn ray_colour(&self, ray: Ray, depth: NonZeroU32, world: &impl Hittable) -> Colour {
+    pub fn ray_colour(&self, ray: Ray, depth: NonZeroU32, world: &impl Hittable) -> Colour {
         let mut record = HitRecord::default();
         // 0.001 is used rather than zero to prevent shadow acne
         if !world.hit(&ray, Interval::new(0.001, f64::INFINITY), &mut record) {
@@ -233,7 +233,8 @@ impl Camera {
         clippy::arithmetic_side_effects,
         reason = "Vector<f64, 3> does not cause side-effects"
     )]
-    fn get_ray(&self, i: u32, j: u32, s_i: u32, s_j: u32) -> Ray {
+    #[must_use]
+    pub fn get_ray(&self, i: u32, j: u32, s_i: u32, s_j: u32) -> Ray {
         // Constructs a camera ray originating from the defocus disk and directed at a randomly
         // sampled point around the pixel location i, j.
 
@@ -255,7 +256,7 @@ impl Camera {
 
     /// Returns the vector to a random point in the square sub-pixel specified by grid indices
     /// `s_i` and `s_j`, for an idealized unit square pixel [-.5,-.5] to [+.5,+.5]
-    fn sample_square_stratified(&self, s_i: u32, s_j: u32) -> Vector<f64, 3> {
+    pub fn sample_square_stratified(&self, s_i: u32, s_j: u32) -> Vector<f64, 3> {
         let px = (f64::from(s_i) + random::<f64>()).mul_add(self.recip_sqrt_spp, -0.5);
         let py = (f64::from(s_j) + random::<f64>()).mul_add(self.recip_sqrt_spp, -0.5);
 
@@ -267,7 +268,7 @@ impl Camera {
         clippy::arithmetic_side_effects,
         reason = "Vector<f64, 3> does not cause side-effects"
     )]
-    fn defocus_disk_sample(&self) -> Point<f64, 3> {
+    pub fn defocus_disk_sample(&self) -> Point<f64, 3> {
         let p = Vector::random_in_unit_disk();
         self.centre + (p.x() * self.defocus_disk_u) + (p.y() * self.defocus_disk_v)
     }

@@ -1,6 +1,7 @@
 use criterion::{criterion_group, criterion_main, BenchmarkId, Criterion};
 use image::RgbImage;
 use linalg::{vector::Vector, Point};
+use rayon::iter::ParallelIterator;
 use raytracer::{
     bounding_volume_hierarchies::bvh::BVHNode,
     engine::{
@@ -12,7 +13,7 @@ use raytracer::{
     surface::{r#box, Quad},
     util::colour::Colour,
 };
-use std::{hint::black_box, num::NonZeroU32, sync::Arc, time::Duration};
+use std::{hint::black_box, num::NonZeroU32, sync::Arc};
 
 fn cornell_bvh() -> BVHNode {
     let mut world = HittableList::new();
@@ -99,40 +100,79 @@ fn cornell_settings(mut settings: CameraSettings) -> CameraSettings {
     settings
 }
 
-fn render_benchmark(c: &mut Criterion) {
-    let mut c = c.benchmark_group("render");
-    c.sample_size(10);
-
+fn cornell_cam_world() -> (Camera, BVHNode) {
     let base_settings = base_settings();
 
     let cornell_settings = cornell_settings(base_settings);
     let cornell_camera = Camera::new(&cornell_settings);
     let cornell_world = cornell_bvh();
+    (cornell_camera, cornell_world)
+}
 
-    let bench_fn =
-        |b: &mut criterion::Bencher<'_>,
-         &(camera, ref world, width, height): &(Camera, BVHNode, u32, u32)| {
-            b.iter(|| {
-                camera.render(
-                    black_box("/dev/null"),
-                    black_box(world),
-                    black_box(RgbImage::new(width, height)),
-                )
-            });
-        };
+fn render_benchmark(c: &mut Criterion) {
+    let mut c = c.benchmark_group("render");
+    c.sample_size(10);
+
+    let (cornell_camera, cornell_world) = cornell_cam_world();
+
+    fn bench_fn_builder(
+        buffer_size: (u32, u32),
+    ) -> impl Fn(&mut criterion::Bencher<'_>, &(Camera, BVHNode)) {
+        move |b: &mut criterion::Bencher<'_>, &(camera, ref world): &(Camera, BVHNode)| {
+            b.iter_batched(
+                || RgbImage::new(buffer_size.0, buffer_size.1),
+                |buffer| camera.render(black_box("/dev/null"), black_box(world), black_box(buffer)),
+                criterion::BatchSize::SmallInput,
+            );
+        }
+    }
 
     c.bench_with_input(
         BenchmarkId::from_parameter("cornell"),
-        &(
-            cornell_camera,
-            cornell_world,
-            cornell_settings.width.get(),
-            cornell_settings.height.get(),
-        ),
-        bench_fn,
+        &(cornell_camera, cornell_world),
+        bench_fn_builder((cornell_camera.width.into(), cornell_camera.height.into())),
     );
     c.finish();
 }
 
-criterion_group!(camera, render_benchmark);
+fn get_ray_benchmark(c: &mut Criterion) {
+    let mut c = c.benchmark_group("get_ray");
+
+    let (cornell_camera, _) = cornell_cam_world();
+
+    fn bench_fn_builder(
+        buffer_size: (u32, u32),
+    ) -> impl FnMut(&mut criterion::Bencher<'_>, &Camera) {
+        move |b: &mut criterion::Bencher<'_>, &camera: &Camera| {
+            b.iter_batched(
+                || RgbImage::new(buffer_size.0, buffer_size.1),
+                |mut buffer| {
+                    buffer.par_enumerate_pixels_mut().for_each(|(i, j, _)| {
+                        for s_i in 0..camera.sqrt_spp.into() {
+                            for s_j in 0..camera.sqrt_spp.into() {
+                                black_box(camera.get_ray(
+                                    black_box(i),
+                                    black_box(j),
+                                    black_box(s_i),
+                                    black_box(s_j),
+                                ));
+                            }
+                        }
+                    })
+                },
+                criterion::BatchSize::SmallInput,
+            );
+        }
+    }
+
+    c.bench_with_input(
+        BenchmarkId::from_parameter("cornell"),
+        &cornell_camera,
+        bench_fn_builder((cornell_camera.width.into(), cornell_camera.height.into())),
+    );
+
+    c.finish();
+}
+
+criterion_group!(camera, render_benchmark, get_ray_benchmark);
 criterion_main!(camera);
